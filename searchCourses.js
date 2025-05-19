@@ -28,59 +28,52 @@ function safeClick(someXPath) {
     }
 }
 
-function waitFor(predicate, callback, interval = 100, timeout = 10000) {
-    const startTime = Date.now();
-    hasRun = false;
-    
-    const check = () => {
-        const result = predicate()
-        if (result && !hasRun) {
-            hasRun = true;
-            callback(result);
-            return;
-        }
+function waitFor(predicate, interval = 100, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
 
-        if (Date.now() - startTime > timeout) {
-            console.warn('waitFor: Timed out');
-            return;
-        }  
-        setTimeout(check, interval);
-    };   
-    check();
+        const check = () => {
+            const result = predicate();
+            if (result) {
+                resolve(result);
+                return;
+            }
+
+            if (Date.now() - startTime > timeout) {
+                reject(new Error('waitFor: Timed out'));
+                return;
+            }
+
+            setTimeout(check, interval);
+        };
+
+        check();
+    });
 }
 
-// Assumes we have to wait for it
-function gatherSection(sectionXPath) {
-    waitFor(
-        () => {
-            Abby = document.evaluate(
-                sectionXPath,
-                document,
-                null,
-                XPathResult.FIRST_ORDERED_NODE_TYPE,
-                null
-            ).singleNodeValue;
+async function getClassData(Alabaster) {
+    // Retrieve all data for a class
+    Bread = '//section[contains(@aria-labelledby, "classDetails")]';
+    let Abby;
 
-            if (Abby == null) { return false; } else { return true; }
-        },
-        result => {
-            Alabaster = document.evaluate(
-                sectionXPath,
-                document,
-                null,
-                XPathResult.FIRST_ORDERED_NODE_TYPE,
-                null
-            ).singleNodeValue.textContent.split(/[\n]+/); // Regex uses / to open and close
+    await waitFor( () => {
+        Abby = getElem(Bread);
+        if (Abby == null) { return false; } else { return true; }
+    });
 
-            Alabaster.forEach((element) => element.trim() );
+    // Create tmp array then deep copy
+    tmpBaster = Abby.textContent.split(/[\n]+/); // Regex uses / to open and close
 
-            return Alabaster;
-        }  
-    );
+    tmpBaster = tmpBaster.map(element => element.trim()).filter(element => element !== '');
+    Alabaster.push(...tmpBaster); // This ellipsis pushes each element of tmpBaster into Alabaster
 }
 
+// Array used for this function only:
+fieldNames = ["classDetails", "prereqs"];
 // Iterates through each class on the page
-function gatherPage() {
+async function getPageOfClasses(Alabaster) {
+    // I am utilising pass-by-ref, and in this case that means clearing the array
+    Alabaster.length = 0;
     
     // tr[1] is the first row
     // td[1] is the first column in the row
@@ -88,22 +81,16 @@ function gatherPage() {
     safeClick('//tbody/tr[1]/td[1]/a');
 
     // Wait for elements to load
-    gate = false;
-    waitFor(
-        () => document.querySelector(".ui-dialog-titlebar-close"),
-        result => {
-            gate = true;
-            Bread = gatherSection('//*[@id="classDetailsContentDetailsDiv"]/section');
-            console.log(Bread);
-        }
-    );
+    try {
+        await waitFor(() => getElem('//button[@class="ui-dialog-titlebar-close"]'));
+    } catch (e) { console.error(e.message); }
 
-    while (gate == false) {
-        slee
-    }
+    await getClassData(Alabaster);
 }
 
-function initSearch() {
+
+// Controls overhead of loading in class pages and ordering the parse of them
+async function main() {
     // Clear all fields
     safeClick('//*[@id="search-clear"]');
     
@@ -112,20 +99,24 @@ function initSearch() {
     
     // Click the drop-down
     dropdownXPath = '//select[@class="page-size-select"]';
-    waitFor(
-        () => document.querySelector('.page-size-select'),
-        elem => {
-            elem.selectedIndex = 3;
-            elem.dispatchEvent(new Event('change', { bubbles: true }));
 
-            // For each page
-            gatherPage();
-        }
-    );
+    (async () => {
+        // Change the page size to 50
+        let elem;
+        await waitFor(() => elem = getElem("//*[@class='page-size-select']"));
+        
+        elem.selectedIndex = 3;
+        elem.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Wait for all the elements to load
+        await waitFor(() => getElem("//tbody").childElementCount == 50);
+
+        // Search all pages
+        Cramner = [];
+        await getPageOfClasses(Cramner);
+
+        console.log(Cramner);
+    })();
 }
-
-initSearch();
-
-function main() {}
 
 main();
