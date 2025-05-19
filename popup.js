@@ -1,4 +1,4 @@
-document.getElementById("clickMe").addEventListener("click", () => {
+document.getElementById("RetrievePage").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.scripting.executeScript({
           target: { tabId: tabs[0].id },
@@ -6,16 +6,27 @@ document.getElementById("clickMe").addEventListener("click", () => {
       }, (result) => {
           if (result && result[0]) {
               alert("Page content: " + result[0].result.substring(0, 100) + "...");
-              //saveTextToFile(result[0].result);
+              saveTextToFile(result[0].result);
           }
       });
   });
 });
 
+document.getElementById("DownloadCatalog").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      files: ['searchCourses.js']
+    });
+  });
+});
+
+// Gets the main body of the web page (may need tweaking)
 function getPageText() {
   return document.body.innerText;
 }
 
+// Saves some list to a file
 function saveTextToFile(text) {
   const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
