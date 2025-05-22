@@ -33,4 +33,22 @@ NOTE: Need to redirect people from trailhead to elluciancloud
     a. For each course, click it and scan sections
 
 2. CSV file format:
-    a. 
+| Course CRN | Course Number | Course Name |   Style  |  Credits | Sec. Num |        Pre Reqs        | 
+|------------|---------------|-------------|----------|----------|----------|------------------------|  ...
+|   80976    |    501 A      |  Adv. Man   | InPerson |     3    |    'A'   |   [MEGN200, MEGN201]   |
+
+| Instruction Begin | Instruction End |       Time And Location      | Enrollment(used) | Waitlist(used) |
+|-------------------|-----------------|------------------------------|------------------|----------------| ...
+|     8/25/2025     |    12/19/2025   | [null, null, (1400, BBW375)] |       21/30      |      0/10      |
+
+| Mutual Exclusion | Course Description |
+|------------------|--------------------|
+|  [(AMFG583, D-)] |   This course...   |
+
+Pre-reqs may be in the course description and not the pre-reqs section
+Some regex: /[Prerequisites:].*/
+
+Time and Location is a list of tuples from Sunday to Saturday
+The data in the tuple is (military-time, location)
+
+I would like to do updates on class availability but thats a problem for another day

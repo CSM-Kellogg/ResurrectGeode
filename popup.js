@@ -12,6 +12,8 @@ document.getElementById("RetrievePage").addEventListener("click", () => {
   });
 });
 
+
+// The path that this executes from: https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/classSearch/classSearch
 document.getElementById("DownloadCatalog").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.scripting.executeScript({
