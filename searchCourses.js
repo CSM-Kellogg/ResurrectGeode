@@ -1,12 +1,14 @@
 /**
  * Be careful with variable names... Check with console if unsure
- * 
+ * Wait lack of semicolons may undo me
  */
 
 CLASS_DEET_SELECT = [
     "CRN", "Campus", "Schedule Type", "Instructional Method", "Section Number",
     "Subject", "Course Number", "Title", "Credit Hours"
 ];
+
+DEBUG_MODE = false;
 
 function getElem(someXPath) {
     const elem = document.evaluate(
@@ -49,13 +51,10 @@ function waitFor(predicate, interval = 100, timeout = 10000) {
                 reject(new Error('waitFor: Timed out. Predicate shown above'));
                 
                 console.log(predicate);
-
                 return;
             }
-
             setTimeout(check, interval);
         };
-
         check();
     });
 }
@@ -134,50 +133,73 @@ async function getPreReqInfo(gypsum) {
     }
 }
 
-async function getMeetingInfo(gypsum) {
+async function getMeetingInfo(powder) {
     // Go to instructor meeting times =========================================
     Cathy = await getSectionBody('//h3[@id="facultyMeetingTimes"]/a',
         '//div[@class="meetingTimesContainer"]');
 
-    // Could be void of data
+    // Could be void of data (Broken rn, goto CSM MISC COURSE)
     if (Cathy.textContent == "No specified meeting times") {
-        gypsum.push(...[null, null, null, null, null, null]);
+        powder.push([null, null, null, null, null, null]);
         return;
     }
     
     // Wait for accordion to load
+    let cathyKids;
     await waitFor(() => {
-        return (Cathy.querySelector('.email') != null);
+        // For each meeting time, the accordion loads a <div> with content
+        // followed by an empty <div>
+        if (Cathy.querySelector('.accordion') == null) {
+                return false;
+        }
+        else {
+            cathyKids = Array.from(Cathy.querySelector('.accordion').children);
+            return (cathyKids.length > 1);
+        }
     });
 
-    // Get email and professor name
-    prof = Cathy.querySelector('.email').textContent;
-    profEmail = Cathy.querySelector('.email').href;
+    // The accordion may have more than one meeting time. (e.g. CRN 80394)
+    cathyKids.forEach((element) => {
+        // If the div is empty
+        if (Array.from(element.children).length == 0) {
+            return; // == continue
+        }
 
-    // Get dates for start and end instruction
-    dates = Cathy.querySelector('.dates').textContent.split(' - ');
+        // Get email and professor name (Given they exist)
+        let prof, profEmail;
+        if (element.querySelector('.email') == null) {
+            prof = null;
+            profEmail = null;
+        } else {
+            prof = element.querySelector('.email').textContent;
+            profEmail = element.querySelector('.email').href;
+        }
 
-    // Get schedule title and keep the days of the week.
-    sheddule = Cathy.querySelector('.ui-pillbox');
-    
-    // if the class is asynchronous, then this element DNE
-    let daysOfWeek, time, classroom;
-    if (sheddule.attributes['title'].value == "Class on: None") { // The class doesn't meet
+        // Get dates for start and end instruction
+        dates = element.querySelector('.dates').textContent.split(' - ');
 
-    } else {
-        // Days of the week
-        daysOfWeek = sheddule.attributes['title'].value.split(':')[1];
+        // Get schedule title and keep the days of the week.
+        sheddule = element.querySelector('.ui-pillbox');
         
-        // Get time of day and location
-        timeAndLoc = Cathy.querySelector('.right').textContent;
-        time = timeAndLoc.match(/[^A-z]*(AM|PM)[^A-z]+(AM|PM)/);
-        // location = timeAndLoc[len(time):].split('|')[1:]
-        classroom = timeAndLoc.slice(time.length).split('|').slice(1);
-    }
-    
-    // I DONT THINK THE ROOM IS IMPORTANT, SO IGNORING THAT FOR NOW
+        // if the class is asynchronous, then this element DNE
+        let daysOfWeek, time, classroom;
+        if (sheddule.attributes['title'].value == "Class on: None") { // The class doesn't meet
 
-    gypsum.push(prof, profEmail, daysOfWeek, dates, time, classroom);
+        } else {
+            // Days of the week
+            daysOfWeek = sheddule.attributes['title'].value.split(':')[1];
+            
+            // Get time of day and location
+            timeAndLoc = element.querySelector('.right').textContent;
+            time = timeAndLoc.match(/[^A-z]*(AM|PM)[^A-z]+(AM|PM)/);
+            // location = timeAndLoc[len(time):].split('|')[1:]
+            classroom = timeAndLoc.slice(time.length).split('|').slice(1);
+        }
+        
+        // I DONT THINK THE ROOM IS IMPORTANT, SO IGNORING THAT FOR NOW
+
+        powder.push([prof, profEmail, daysOfWeek, dates, time, classroom]);
+    });
 }
 
 async function getMutualExclInfo(gypsum) {
@@ -186,7 +208,7 @@ async function getMutualExclInfo(gypsum) {
         '//section[contains(@aria-labelledby, "mexc")]');
     
     // Check for mutual exlcusions
-    if (Diana.textContent.trim().includes("information available")) {
+    if (Diana.textContent.includes("information available")) {
         // No mutual exclusions, returning
         gypsum.push(null);
         return;
@@ -216,7 +238,7 @@ async function getCourseDescription(gypsum, prereqIndex) {
     Evelyn = await getSectionBody('//h3[@id="courseDescription"]/a',
         '//section[contains(@aria-labelledby, "courseDescription")]');
     
-    description = Evelyn.textContent;
+    description = Evelyn.textContent.trim();
 
     gypsum.push(description);
 
@@ -233,17 +255,23 @@ async function getCourseDescription(gypsum, prereqIndex) {
 
 async function getClassData(Alabaster) {
     Alabaster.length = 0; // Clear the passed by referenced array
+    medusa = []
 
     // This ellipsis pushes each element
-    await getClassDetailInfo(Alabaster);
+    await getClassDetailInfo(medusa);
+    prereqIndex = await getPreReqInfo(medusa);
 
-    prereqIndex = await getPreReqInfo(Alabaster);
     await getMeetingInfo(Alabaster);
 
     // Doing Enrollment/waitlist later
 
-    await getMutualExclInfo(Alabaster);
-    await getCourseDescription(Alabaster, prereqIndex);
+    await getMutualExclInfo(medusa);
+    await getCourseDescription(medusa, prereqIndex);
+
+    // for each element in medusa, duplicate each element in alabaster and append the corresponding element in medusa
+    Alabaster.forEach((element) => {
+        element.unshift(...medusa);
+    });
 }
 
 // Array used for this function only:
@@ -280,49 +308,61 @@ async function getPageOfClasses(quartz, pageRowNum) {
         await waitFor(() => {
             return (getElem('//div[@class="ui-widget-overlay ui-front"]') == null);
         });
-
-        //console.log(quartz);
     }
 }
 
 // Controls overhead of loading in class pages and ordering the parse of them
 async function main() {
+
+    // some debugging mode stuff
+    PAGE_SIZE = 50; // How many classes on each page
+    PAGE_SIZE_INDEX = 3; // The index in the selection box on the webpage
+    if (DEBUG_MODE) {
+        PAGE_SIZE = 10;
+        PAGE_SIZE_INDEX = 0;
+    }
+
     // Clear all fields
     safeClick('//*[@id="search-clear"]');
     
     // Click the search button
     safeClick('//*[@id="search-go"]');
-    
-    // Click the drop-down
-    dropdownXPath = '//select[@class="page-size-select"]';
+
+    classCatalog = []; // The catalog for a semester
 
     (async () => {
         // Search all pages
         let nextBtn;
+        pageNum = 1;
         do {
             // Change the page size to 50
             let elem;
             await waitFor(() => elem = getElem("//*[@class='page-size-select']"));
             
-            elem.selectedIndex = 3;
+            elem.selectedIndex = PAGE_SIZE_INDEX;
             elem.dispatchEvent(new Event('change', { bubbles: true }));
             
             // Wait for all the elements to load
-            await waitFor(() => getElem("//tbody").childElementCount == 50);
+            await waitFor(() => getElem("//tbody").childElementCount == PAGE_SIZE);
             
             // Get the page data
             Cramner = [];
-            await getPageOfClasses(Cramner, 50);
+            await getPageOfClasses(Cramner, PAGE_SIZE);
+
+            console.log(`Page ${pageNum} done`);
+            pageNum ++;
 
             nextBtn = getElem('//*[@title="Next"]');
             safeClick('//*[@title="Next"]');
-        } while(nextBtn.attributes['class'].value.match('enabled') != null);
 
-        // Save the result (Cramner)
+            // Save the result into the end thingy
+            await classCatalog.push(...Cramner);
+
+        } while(nextBtn.attributes['class'].value.match('enabled') != null && DEBUG_MODE == false);
+
+        // Download the csv
+        download2DArray(classCatalog);
     })();
-
-    // Download the csv
-
 }
 
 main();

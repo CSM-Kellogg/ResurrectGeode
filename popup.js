@@ -18,7 +18,7 @@ document.getElementById("DownloadCatalog").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.scripting.executeScript({
       target: { tabId: tabs[0].id },
-      files: ['searchCourses.js']
+      files: ['searchCourses.js', 'utils.js']
     });
   });
 });
