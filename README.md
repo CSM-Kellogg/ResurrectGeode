@@ -41,8 +41,9 @@ CRN, isOnline, classType, isFacetoFace, section, department, courseNum (301), cl
  A. Needs the little lines between and time of day (currently has hour blocks, needs 30 min blocks and non-military time)
  B. Ability to block out times
     1. drag-and-click would be good
- C. Warnings (you need these pre-requisites)
+ C. Enable/disale courses
+ D. Warnings (you need these pre-requisites)
     1. Maybe a link to degreeWorks or the unofficial transcript
     2. Is a little yellow warning that can be checked off to resolve
     3. Maybe a setting to disable warnings
- D. Ability to open a link that searches for the professor in rateMyProfessors
+ E. Ability to open a link that searches for the professor in rateMyProfessors

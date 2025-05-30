@@ -2,39 +2,28 @@
 * By ChatGPT
 */
 
-.schedule-grid {
-    display: grid;
-    grid-template-columns: 100px repeat(5, 1fr);
-    grid-template-rows: 40px repeat(10, 60px);
-    gap: 1px;
-    background: #dee2e6;
+html, body {
+    height: 100%;
+    margin: 0;
 }
-.schedule-cell {
-    background: white;
-    border: 1px solid #dee2e6;
-    text-align: center;
-    padding: 8px;
+.resizable {
+    resize: vertical;
+    overflow: auto;
+    min-height: 100px;
 }
-.schedule-time {
-    background: #f8f9fa;
-    font-weight: bold;
+.column {
+    height: 100vh;
+    overflow: hidden;
 }
-.class-block {
-    background-color: #0d6efd;
-    color: white;
-    border-radius: 4px;
-    padding: 4px;
-    font-size: 0.875rem;
+.left-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
-
-.resizable-layout {
-  height: 90vh;
-  border: 1px solid #dee2e6;
-  overflow: hidden;
+.left-top, .left-bottom {
+    flex: 1;
+    overflow: auto;
 }
-
-#dragHandle {
-  background-color: #ccc;
-  cursor: col-resize;
-  width: 5px;
+.left-top {
+    resize: vertical;
 }
