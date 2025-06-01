@@ -1,27 +1,27 @@
 {
-  "manifest_version": 3,
-  "name": "Geode Resurrected",
-  "version": "1.0",
-  "description": "Your schedule making savior",
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon.png"
-  },
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ],
-  "web_accessible_resources": [
-  {
-    "resources": ["papaparse.min.js"],
-    "matches": ["<all_urls>"]
-  }
-  ],
-  "permissions": ["storage", "activeTab", "scripting", "tabs"],
-  "host_permissions": ["<all_urls>"]
+    "manifest_version": 3,
+    "name": "My Chrome Extension",
+    "version": "1.0",
+    "description": "A simple Chrome extension boilerplate.",
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icon.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ],
+    "permissions": ["storage", "activeTab", "scripting", "tabs"],
+    "host_permissions": ["<all_urls>"],
+    "web_accessible_resources": [
+        {
+            "resources": ["catalog.csv"],
+            "matches": ["<all_urls>"]
+        }
+    ]
 }

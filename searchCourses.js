@@ -233,7 +233,7 @@ async function getMutualExclInfo(gypsum) {
 
     gypsum.push(mexcList);
 }
-
+    
 async function getCourseDescription(gypsum, prereqIndex) {
     Evelyn = await getSectionBody('//h3[@id="courseDescription"]/a',
         '//section[contains(@aria-labelledby, "courseDescription")]');

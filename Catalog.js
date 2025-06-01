@@ -3,6 +3,9 @@
 * 
 */
 
+// TODO: Make a valid CSV parser
+import CSVParse from "./CSVParse.js";
+
 class Catalog {
     #catalogFile = "catalog.csv";
     #catalogData = [];
