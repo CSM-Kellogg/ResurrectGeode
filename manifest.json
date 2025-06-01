@@ -16,6 +16,12 @@
       "js": ["content.js"]
     }
   ],
+  "web_accessible_resources": [
+  {
+    "resources": ["papaparse.min.js"],
+    "matches": ["<all_urls>"]
+  }
+  ],
   "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "host_permissions": ["<all_urls>"]
 }
