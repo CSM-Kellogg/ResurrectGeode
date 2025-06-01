@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Chrome Extension",
+  "name": "Geode Resurrected",
   "version": "1.0",
-  "description": "A simple Chrome extension boilerplate.",
+  "description": "Your schedule making savior",
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"
