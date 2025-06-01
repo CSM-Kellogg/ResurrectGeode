@@ -1,82 +1,93 @@
 /**
-* Boiler plate for singleton by ChatGPT
+* Mostly by ChatGPT with collaboration from Liam Kellogg and Grey Garner
 * 
 */
 
-// TODO: Make a valid CSV parser
-import CSVParse from "./CSVParse.js";
+// Headers for the catalog
+const HEADERS = [
+    "crn", "campus", "schedule type", "instructional method", "section",
+    "department", "coursenum", "class name", "credits", "pre-reqs",
+    "mutual exclusions", "coursedescription", "professor", "professor email",
+    "meetingdays", "meetingrange", "timeofday", "roomnum"
+];
 
 class Catalog {
+    // The file to load the catalog from
     #catalogFile = "catalog.csv";
+    // The location in memory for the catalog data
     #catalogData = [];
 
+    // Singleton design principle.
     constructor() {
+        // If it exists, no need to do anything else
         if (Catalog._instance) return Catalog._instance;
-        Catalog._instance = this;
-
-        this.#loadCatalog();
-    }
-    
-    async #loadCatalog() {
-        // Chat-GPT: Load a file and read it
-        let parsed;
-
-        await fetch(chrome.runtime.getURL(this.#catalogFile))
-            .then(res => res.text())
-            .then(csvText => {
-                const parsed = CSVParse(csvText, {
-                header: false,
-            })}) // ayo wtf
-            .catch(console.error)
         
-        // Now, I want to store the raw data into courseList
-        // console.log(parsed.length);
-        // console.log(parsed[0].length);
+        // If it therefore not am, create a new instance and initialize it
+        Catalog._instance = this;
+        this.#loadCatalog(); // Load in the catalog
     }
 
+    // Loads in the catalog from file.
     async #loadCatalog() {
         const res = await fetch(chrome.runtime.getURL(this.#catalogFile));
         const text = await res.text();
-        console.log("About to assign parsed catalog");
+        
+        // Parse the text blob
         this.#catalogData = this.#parseCSV(text);
+
+        // Some debug
         console.log("Parsed Catalog:", this.#catalogData);
         console.log("Parsed Catalog sample:", this.#catalogData[0]);
         console.log("Available keys:", Object.keys(this.#catalogData[0]));
     }
-    #parseCSV(text) {
-        const HEADERS = [
-            "crn", "campus", "schedule type", "instructional method", "section",
-            "department", "coursenum", "class name", "credits", "pre-reqs",
-            "mutual exclusions", "coursedescription", "professor", "professor email",
-            "meetingdays", "meetingrange", "timeofday", "roomnum"
-        ];
     
+    // Parses a CSV using PapaParse
+    #parseCSV(text) {
+        // Parse the text blob using PapaParse
         const parsed = Papa.parse(text, {
             header: false,
             skipEmptyLines: true
         });
-    
+        
+        // Create a searchable dictionary by column headers
         const rows = parsed.data.map((row, i) => {
+            // Validate row lengths to be equal to header length
             if (row.length !== HEADERS.length) {
                 console.warn(`Row ${i + 1} length mismatch. Skipping.`, row);
                 return null;
             }
-    
+            
+            // The dictionary for a certain row
             const obj = {};
             HEADERS.forEach((key, j) => {
                 obj[key] = row[j];
             });
             return obj;
         });
-    
+
+
+        /**
+         * TODO
+         * Merge same class names and create sections
+         * 
+         * Idea: We have keys to class names, so go through each one and get
+         * the matching set. With this set, create an entry in A NEW LIST
+         * that contains all the sections with corresponding CRNS
+         * Shared data: class name, campus, department, course number, credits,
+         *      prereqs, mutual exclusions, course description.
+         */
+
+        // Going to python for parsing this bullshit
+
+        // Discard null rows and return
         return rows.filter(Boolean);
     }
-    
-    
-    
 
+    // Searches by keyword
     search(keyword) {
         const lcKeyword = keyword.toLowerCase();
+        
+        // keyword by class name for now
         return this.#catalogData.filter(entry =>
             entry["class name"]?.toLowerCase().includes(lcKeyword)
         );

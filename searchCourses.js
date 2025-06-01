@@ -1,6 +1,12 @@
 /**
  * Be careful with variable names... Check with console if unsure
  * Wait lack of semicolons may undo me
+ * 
+ * TODO:
+ * 1. handle timeout and drop in connection (might be impossible due to how we are injecting the script)
+ * 2. Co-requisites (also the difference between pre-requisites and Prerequisites and Prerequisite)
+ * 3. The classes that didn't load at all
+ * 4. 
  */
 
 CLASS_DEET_SELECT = [
@@ -298,7 +304,7 @@ async function getPageOfClasses(quartz, pageRowNum) {
             await getClassData(amethyst);
             quartz.push(...amethyst);
         } catch (e) {
-            console.log(`Was unable to parse class, class CRN is: ${amethyst[0]}`);
+            console.log(`Was unable to parse class, available data is: ${amethyst}`);
         }
 
         // Close the window, we are done here
