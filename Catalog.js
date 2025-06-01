@@ -16,6 +16,23 @@ class Catalog {
 
         this.#loadCatalog();
     }
+    
+    async #loadCatalog() {
+        // Chat-GPT: Load a file and read it
+        let parsed;
+
+        await fetch(chrome.runtime.getURL(this.#catalogFile))
+            .then(res => res.text())
+            .then(csvText => {
+                const parsed = CSVParse(csvText, {
+                header: false,
+            })}) // ayo wtf
+            .catch(console.error)
+        
+        // Now, I want to store the raw data into courseList
+        // console.log(parsed.length);
+        // console.log(parsed[0].length);
+    }
 
     async #loadCatalog() {
         const res = await fetch(chrome.runtime.getURL(this.#catalogFile));
