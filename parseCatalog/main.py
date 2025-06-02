@@ -20,8 +20,8 @@ with open('catalog.csv', mode='r', newline='', encoding='utf-8') as file:
 
 """
 NEW HEADERS:
-    "department", "coursenum", "class name", "campus", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "sectionListing"
+    "department", "coursenum", "class name", "credits", "pre-reqs",
+    "mutual exclusions", "coursedescription", "campus", "sectionListing"
 """
 converted = []
 
@@ -39,7 +39,8 @@ while len(result) > 0:
             del result[i] # Pop the course from the list
         else: i += 1
     
-    converted.append(tmp_course[5:12] + [tmp_course[1]] + sections)
+    # Using insert to reverse the list and preserve the intial ordering
+    converted.insert(0, tmp_course[5:12] + [tmp_course[1]] + [sections])
 
 # Write out using the GOATed library csv
 f = open("mergedSections.csv", 'w', encoding='utf-8', newline='')

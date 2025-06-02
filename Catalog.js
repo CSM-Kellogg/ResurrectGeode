@@ -3,17 +3,15 @@
 * 
 */
 
-// Headers for the catalog
+// Headers for the refactored catalog
 const HEADERS = [
-    "crn", "campus", "schedule type", "instructional method", "section",
     "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "professor", "professor email",
-    "meetingdays", "meetingrange", "timeofday", "roomnum"
+    "mutual exclusions", "coursedescription", "campus", "sectionListing"
 ];
 
 class Catalog {
     // The file to load the catalog from
-    #catalogFile = "catalog.csv";
+    #catalogFile = "refactoredCatalog.csv";
     // The location in memory for the catalog data
     #catalogData = [];
 
@@ -36,9 +34,9 @@ class Catalog {
         this.#catalogData = this.#parseCSV(text);
 
         // Some debug
-        console.log("Parsed Catalog:", this.#catalogData);
-        console.log("Parsed Catalog sample:", this.#catalogData[0]);
-        console.log("Available keys:", Object.keys(this.#catalogData[0]));
+        // console.log("Parsed Catalog:", this.#catalogData);
+        // console.log("Parsed Catalog sample:", this.#catalogData[0]);
+        // console.log("Available keys:", Object.keys(this.#catalogData[0]));
     }
     
     // Parses a CSV using PapaParse
@@ -65,19 +63,11 @@ class Catalog {
             return obj;
         });
 
-
         /**
          * TODO
-         * Merge same class names and create sections
-         * 
-         * Idea: We have keys to class names, so go through each one and get
-         * the matching set. With this set, create an entry in A NEW LIST
-         * that contains all the sections with corresponding CRNS
-         * Shared data: class name, campus, department, course number, credits,
-         *      prereqs, mutual exclusions, course description.
+         * Merge same class names and create sections --- DONE
+         * Make a seperate window to view all the sections
          */
-
-        // Going to python for parsing this bullshit
 
         // Discard null rows and return
         return rows.filter(Boolean);

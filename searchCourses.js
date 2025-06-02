@@ -8,6 +8,7 @@
  * 3. The classes that didn't load at all
  * 4. Linked Courses (like Chem121)
  * 5. The PM,PM,PM bug
+ * 6. Replace &amp;amp;amp; with &
  */
 
 CLASS_DEET_SELECT = [
