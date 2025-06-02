@@ -6,31 +6,96 @@ html, body {
     height: 100%;
     margin: 0;
 }
-.resizable {
-    resize: vertical;
-    overflow: auto;
-    min-height: 100px;
-}
+
 .column {
     height: 100vh;
     overflow: hidden;
 }
+
 .left-pane {
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }
-.left-top {
-    flex: 1;
+
+#left-top {
+    height: 30%;
+    min-height: 100px;
     overflow: auto;
 }
-.left-top {
-    resize: vertical;
+
+.drag-handle {
+  cursor: grab;
 }
-  .left-bottom {
-    flex: 2;
+
+#drag-handle {
+    height: 6px;
+    background: #ccc;
+    cursor: row-resize;
+    width: 100%;
+}
+
+#left-bottom {
+    flex: 1;
     overflow-y: auto;
+    min-height:100px;
 }
+
+.col-md-6.right-pane {
+    resize: horizontal;
+    overflow: auto;
+    min-width: 300px;
+}
+
 #detail-body p {
     margin-bottom: 0.5rem;
+}
+
+#main-container {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#left-column {
+    min-width: 200px;
+    max-width: 80%;
+}
+
+#right-column {
+    min-width: 200px;
+    overflow: auto;
+}
+
+#vertical-drag {
+    background-color: #ccc;
+    width: 6px;
+    cursor: col-resize;
+    z-index: 10;
+}
+
+/* ============================================================
+ popup using interactJS, ty ChatGPT
+============================================================ */ 
+.floating-box {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 300px;
+  height: 200px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  resize: none; /* Disable native resizer */
+  z-index: 11;
+}
+
+.resize-drag {
+    touch-action: none;
+    user-select: none;
+    box-sizing: border-box;
 }

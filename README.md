@@ -1,3 +1,9 @@
+### NPM and interactJS
+To save trouble of creating a whole ass js script for draggable UI elements, I have chosen to use interactJS.
+This requires installation on my part, but I don't think it's required for anyone else.
+I hate installing things like this damn
+
+
 ### Some notes:
 Need to redirect people from trailhead to elluciancloud
  --> Or, figure out which is which when uploading a created course load

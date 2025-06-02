@@ -45,68 +45,124 @@ const deptShrtHand = {
     "Systems Courses": "SYGN"
 }
 
-function addInfo(parent, label, value) {
-    const element = document.createElement('p');
-    element.innerHTML = `<strong>${label}:</strong> ${value}`
-    parent.appendChild(element);
+const topPane = document.getElementById('left-top');
+const dragHandle = document.getElementById('drag-handle');
+const container = document.querySelector('.left-pane');
 
-    return element;
-}
+let isDragging = false;
 
+dragHandle.addEventListener('mousedown', function (e) {
+    isDragging = true;
+    document.body.style.cursor = 'row-resize';
+    e.preventDefault();
+});
+
+document.addEventListener('mousemove', function (e) {
+    if (!isDragging) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const offsetY = e.clientY - containerRect.top;
+    const minHeight = 100;
+    const maxHeight = containerRect.height - minHeight;
+    
+    // Clamp value
+    const newHeight = Math.max(minHeight, Math.min(offsetY, maxHeight));
+    topPane.style.height = `${newHeight}px`;
+});
+
+document.addEventListener('mouseup', function () {
+    if (isDragging) {
+        isDragging = false;
+        document.body.style.cursor = '';
+    }
+});
+
+const leftCol = document.getElementById('left-column');
+const verticalDrag = document.getElementById('vertical-drag');
+const mainContainer = document.getElementById('main-container');
+
+let isDraggingVert = false;
+
+verticalDrag.addEventListener('mousedown', function (e) {
+    isDraggingVert = true;
+    document.body.style.cursor = 'col-resize';
+    e.preventDefault();
+});
+
+document.addEventListener('mousemove', function (e) {
+    if (!isDraggingVert) return;
+    
+    const containerRect = mainContainer.getBoundingClientRect();
+    const offsetX = e.clientX - containerRect.left;
+    const minWidth = 200;
+    const maxWidth = containerRect.width - minWidth;
+    
+    const newWidth = Math.max(minWidth, Math.min(offsetX, maxWidth));
+    leftCol.style.width = `${newWidth}px`;
+});
+
+document.addEventListener('mouseup', function () {
+    if (isDraggingVert) {
+        isDraggingVert = false;
+        document.body.style.cursor = '';
+    }
+});
+
+// Displays content of selected course
+// Collaboration of Liam Kellogg and ChatGPT
 function displayCourseContent(course) {
-    const detailContainer = document.getElementById('course-detail');
-    const detailTitle = document.getElementById('detail-title');
-    const detailBody = document.getElementById('detail-body');
+    // Remove previous floating box if present
+    let existingBox = document.getElementById('floating-popup');
+    if (existingBox) existingBox.remove();
     
-    // Show the detail section
-    detailContainer.style.display = 'block';
+    // Create floating container
+    const floatBox = document.createElement('div');
+    floatBox.id = 'floating-popup';
+    floatBox.className = 'floating-box resize-drag';
     
-    /** Populate each field in a specific order
-     * 1. ShorthandDeptName: courseNum - course name
-     * 2. campus, credits
-     * 3. Pre-reqs, co-reqs, mutual exclusions
-     * 4. Course description
-     * 5 (for now). Section info
-     */
-
-    // Clear previous content
-    detailBody.innerHTML = '';
-
-    // Set title of course
-    detailTitle.textContent = `${deptShrtHand[course['department']]} 
-        ${course['coursenum']} - ${course['class name']}` || 'Course Details';
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.className = 'close-btn';
+    closeBtn.onclick = () => floatBox.remove();
+    floatBox.appendChild(closeBtn);
     
-    // Campus and credits line (just a little weird)
-    addInfo(detailBody, 'Campus', `${course['campus']}<br/><strong>Credits:</strong> ${course['credits']}`);
-
-    // Pre-reqs
-    // TODO: update when searchCourses is updated
-    addInfo(detailBody, 'Prerequisites', course['pre-reqs'] || "None");
-
-    // co-reqs
-    // TODO: update when searchCOurses is updated
-
-    // mutual exclusions
-    // TODO: Make this look nice
-    addInfo(detailBody, 'Mutual Exclusions', course['mutual exclusions'] || "None");
-
-    // Course description
-    addInfo(detailBody, 'Course Description', course["coursedescription"] || "None");
-
-    // Sec. info (delete later)
-    addInfo(detailBody, 'Section Info', course['sectionListing']);
+    // Title
+    const title = document.createElement('h5');
+    title.textContent = `${deptShrtHand[course['department']]} ${course['coursenum']} - ${course['class name']}` || 'Course Details';
+    floatBox.appendChild(title);
+    
+    // Helper function
+    const addInfo = (label, content) => {
+        const container = document.createElement('p');
+        container.innerHTML = `<strong>${label}:</strong> ${content}`;
+        floatBox.appendChild(container);
+    };
+    
+    // Content
+    addInfo('Campus & Credits', `${course['campus']}<br/><strong>Credits:</strong> ${course['credits']}`);
+    addInfo('Prerequisites', course['pre-reqs'] || "None");
+    addInfo('Mutual Exclusions', course['mutual exclusions'] || "None");
+    addInfo('Course Description', course['coursedescription'] || "None");
+    addInfo('Section Info', course['sectionListing'] || "None");
+    
+    document.body.appendChild(floatBox);
+    // At the end of the function:
+    // makeDraggable(floatBox);
+    // makeResizable(floatBox);
 }
 
+// Submission to search box
 document.getElementById('search-form').addEventListener('submit', async function (event) {
     event.preventDefault();
-
+    
     const inputValue = document.getElementById('keyword-search').value;
     // Search for matches using the form submission
     const results = catalog.search(inputValue);
-
+    
     const list = document.getElementById('search-results');
     list.innerHTML = ''; // Clear previous results
-
+    
     // If no results, display accordingly
     if (results.length === 0) {
         const item = document.createElement('li');
@@ -115,12 +171,11 @@ document.getElementById('search-form').addEventListener('submit', async function
         list.appendChild(item);
         return;
     }
-
-    // Behavior for mouseover
-    let courseSelected = false;
-
+    
     console.log(`results length: ${results.length}`);
-
+    
+    let selection = false;
+    
     // For each result, print the class as a search result
     results.forEach(course => {
         // Add the content for the search result
@@ -131,20 +186,81 @@ document.getElementById('search-form').addEventListener('submit', async function
         
         // Event listeners to display more info on each course
         button.addEventListener("click", () => {
-            courseSelected = true;
+            selection = !selection;
             displayCourseContent(course);
             // display Sections
-        });
-
-        button.addEventListener('mouseover', () => {
-            if(!courseSelected) {
-                displayCourseContent(course);
-                // display Sections
-            }
         });
         
         // Add to results list
         list.appendChild(button);
     });
     
+})
+
+function dragMoveListener (event) {
+    var target = event.target
+    // keep the dragged position in the data-x/data-y attributes
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+    
+    // translate the element
+    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+    
+    // update the posiion attributes
+    target.setAttribute('data-x', x)
+    target.setAttribute('data-y', y)
+}
+
+// this function is used later in the resizing and gesture demos
+window.dragMoveListener = dragMoveListener
+
+interact('.resize-drag')
+.resizable({
+    // resize from all edges and corners
+    edges: { left: true, right: true, bottom: true, top: true },
+    
+    listeners: {
+        move (event) {
+            var target = event.target
+            var x = (parseFloat(target.getAttribute('data-x')) || 0)
+            var y = (parseFloat(target.getAttribute('data-y')) || 0)
+            
+            // update the element's style
+            target.style.width = event.rect.width + 'px'
+            target.style.height = event.rect.height + 'px'
+            
+            // translate when resizing from top or left edges
+            x += event.deltaRect.left
+            y += event.deltaRect.top
+            
+            target.style.transform = 'translate(' + x + 'px,' + y + 'px)'
+            
+            // target.setAttribute('data-x', x)
+            // target.setAttribute('data-y', y)
+            // target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)
+        }
+    },
+    modifiers: [
+        // keep the edges inside the parent
+        interact.modifiers.restrictEdges({
+            outer: 'parent'
+        }),
+        
+        // minimum size
+        interact.modifiers.restrictSize({
+            min: { width: 100, height: 50 }
+        })
+    ],
+    
+    inertia: true
+})
+.draggable({
+    listeners: { move: window.dragMoveListener },
+    inertia: true,
+    modifiers: [
+        interact.modifiers.restrictRect({
+            restriction: 'parent',
+            endOnly: true
+        })
+    ]
 })
