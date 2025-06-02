@@ -6,7 +6,8 @@
  * 1. handle timeout and drop in connection (might be impossible due to how we are injecting the script)
  * 2. Co-requisites (also the difference between pre-requisites and Prerequisites and Prerequisite)
  * 3. The classes that didn't load at all
- * 4. 
+ * 4. Linked Courses (like Chem121)
+ * 5. The PM,PM,PM bug
  */
 
 CLASS_DEET_SELECT = [
