@@ -112,20 +112,31 @@ document.addEventListener('mouseup', function () {
 // Collaboration of Liam Kellogg and ChatGPT
 function displayCourseContent(course) {
     // Remove previous floating box if present
-    let existingBox = document.getElementById('floating-popup');
-    if (existingBox) existingBox.remove();
+    let floatBox = document.getElementById('floating-popup');
+    if (floatBox) {
+        floatBox.innerHTML=''
+    } else {
+        // create n new one if not
+        floatBox = document.createElement('div');
+        floatBox.id = 'floating-popup';
+        floatBox.className = 'floating-box resize-drag';
+    }
     
-    // Create floating container
-    const floatBox = document.createElement('div');
-    floatBox.id = 'floating-popup';
-    floatBox.className = 'floating-box resize-drag';
-    
-    // Close button
+    // Close button and header
+    const header = document.createElement('div');
+    header.className = 'header d-flex align-items-center justify-content-between p-0 border-bottom';
+    floatBox.appendChild(header);
+
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
     closeBtn.className = 'close-btn';
     closeBtn.onclick = () => floatBox.remove();
-    floatBox.appendChild(closeBtn);
+    header.appendChild(closeBtn);
+
+    const headerInfo = document.createElement('h5');
+    headerInfo.textContent = "Selected Course Info";
+    headerInfo.className = "mb-0 fw-bold text-dark me-auto px-2";
+    header.appendChild(headerInfo);
     
     // Title
     const title = document.createElement('h5');
