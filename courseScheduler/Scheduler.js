@@ -155,12 +155,11 @@ function displayCourseContent(course) {
     addInfo('Prerequisites', course['pre-reqs'] || "None");
     addInfo('Mutual Exclusions', course['mutual exclusions'] || "None");
     addInfo('Course Description', course['coursedescription'] || "None");
+    
+    // For the section info, create a list on the 
     addInfo('Section Info', course['sectionListing'] || "None");
     
     document.body.appendChild(floatBox);
-    // At the end of the function:
-    // makeDraggable(floatBox);
-    // makeResizable(floatBox);
 }
 
 // Submission to search box
@@ -208,22 +207,25 @@ document.getElementById('search-form').addEventListener('submit', async function
     
 })
 
+/*=======================================
+From the InteractJS website 
+=======================================*/
 function dragMoveListener (event) {
-    var target = event.target
+    var target = event.target;
     // keep the dragged position in the data-x/data-y attributes
-    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
     
     // translate the element
-    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
     
     // update the posiion attributes
-    target.setAttribute('data-x', x)
-    target.setAttribute('data-y', y)
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
 }
 
 // this function is used later in the resizing and gesture demos
-window.dragMoveListener = dragMoveListener
+window.dragMoveListener = dragMoveListener;
 
 interact('.resize-drag')
 .resizable({
@@ -232,23 +234,19 @@ interact('.resize-drag')
     
     listeners: {
         move (event) {
-            var target = event.target
-            var x = (parseFloat(target.getAttribute('data-x')) || 0)
-            var y = (parseFloat(target.getAttribute('data-y')) || 0)
+            var target = event.target;
+            var x = (parseFloat(target.getAttribute('data-x')) || 0);
+            var y = (parseFloat(target.getAttribute('data-y')) || 0);
             
             // update the element's style
-            target.style.width = event.rect.width + 'px'
-            target.style.height = event.rect.height + 'px'
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
             
             // translate when resizing from top or left edges
-            x += event.deltaRect.left
-            y += event.deltaRect.top
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
             
-            target.style.transform = 'translate(' + x + 'px,' + y + 'px)'
-            
-            // target.setAttribute('data-x', x)
-            // target.setAttribute('data-y', y)
-            // target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)
+            target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
         }
     },
     modifiers: [
@@ -274,4 +272,4 @@ interact('.resize-drag')
             endOnly: true
         })
     ]
-})
+});

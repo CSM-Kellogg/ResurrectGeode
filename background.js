@@ -2,7 +2,8 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("Extension Installed");
 });
 
-// ChatGPT
+// ChatGPT - makes a new tab or re-directs the user to the existing tab.
+// This doesn't prevent multiple instances of the tab being open
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "openOrFocusTab") {
     const targetUrl = message.url;

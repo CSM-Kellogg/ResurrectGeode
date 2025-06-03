@@ -11,7 +11,7 @@ const HEADERS = [
 
 class Catalog {
     // The file to load the catalog from
-    #catalogFile = "refactoredCatalog.csv";
+    #catalogFile = "courseScheduler/refactoredCatalog.csv";
     // The location in memory for the catalog data
     #catalogData = [];
 

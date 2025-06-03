@@ -20,7 +20,7 @@
     "host_permissions": ["<all_urls>"],
     "web_accessible_resources": [
         {
-            "resources": ["catalog.csv"],
+            "resources": [""],
             "matches": ["<all_urls>"]
         }
     ]
