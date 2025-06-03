@@ -121,45 +121,74 @@ function displayCourseContent(course) {
         floatBox.id = 'floating-popup';
         floatBox.className = 'floating-box resize-drag';
     }
-    
-    // Close button and header
-    const header = document.createElement('div');
-    header.className = 'header d-flex align-items-center justify-content-between p-0 border-bottom';
-    floatBox.appendChild(header);
 
+    // Close button and header
+    const header = document.createElement('header');
+    header.className = 'header d-flex align-items-center border-bottom';
+    
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
     closeBtn.className = 'close-btn';
     closeBtn.onclick = () => floatBox.remove();
     header.appendChild(closeBtn);
-
+    
     const headerInfo = document.createElement('h5');
     headerInfo.textContent = "Selected Course Info";
     headerInfo.className = "mb-0 fw-bold text-dark me-auto px-2";
     header.appendChild(headerInfo);
+
+    floatBox.appendChild(header);
     
-    // Title
-    const title = document.createElement('h5');
-    title.textContent = `${deptShrtHand[course['department']]} ${course['coursenum']} - ${course['class name']}` || 'Course Details';
-    floatBox.appendChild(title);
-    
-    // Helper function
+    // Body of the info box
+    const infoArea = document.createElement('div');
+    floatBox.appendChild(infoArea);
+
+    // Helper function for adding information to the floatBox
     const addInfo = (label, content) => {
         const container = document.createElement('p');
         container.innerHTML = `<strong>${label}:</strong> ${content}`;
-        floatBox.appendChild(container);
+        infoArea.appendChild(container);
     };
     
-    // Content
+    const title = document.createElement('h5');
+    title.textContent = `${deptShrtHand[course['department']]} ${course['coursenum']} - ${course['class name']}` || 'Course Details';
+    infoArea.appendChild(title);
+
     addInfo('Campus & Credits', `${course['campus']}<br/><strong>Credits:</strong> ${course['credits']}`);
     addInfo('Prerequisites', course['pre-reqs'] || "None");
     addInfo('Mutual Exclusions', course['mutual exclusions'] || "None");
     addInfo('Course Description', course['coursedescription'] || "None");
     
-    // For the section info, create a list on the 
-    addInfo('Section Info', course['sectionListing'] || "None");
+    // addInfo('Section Info', course['sectionListing'] || "None");
     
     document.body.appendChild(floatBox);
+
+    // For the section info, create a list on the RHS
+    // Following snippet from chatGPT
+    // Step 1: Convert single quotes to double quotes
+    let raw = course['sectionListing'];
+    raw = raw.replace(/'/g, '"');
+    
+    // Step 2: Parse to actual JS array
+    const courseData = JSON.parse(raw);
+    
+    // Step 3: Build HTML
+    const parent = document.getElementById("sectionContainer");
+    parent.innerHTML = '';
+    
+    courseData.forEach(row => {
+        const courseDiv = document.createElement("div");
+        courseDiv.classList.add("course-entry");
+        
+        row.forEach((cell, i) => {
+            const field = document.createElement("div");
+            field.textContent = cell;
+            field.classList.add("field", `field-${i}`);
+            courseDiv.appendChild(field);
+        });
+        
+        parent.appendChild(courseDiv);
+    });
 }
 
 // Submission to search box
@@ -182,7 +211,7 @@ document.getElementById('search-form').addEventListener('submit', async function
         return;
     }
     
-    console.log(`results length: ${results.length}`);
+    //console.log(`results length: ${results.length}`);
     
     let selection = false;
     

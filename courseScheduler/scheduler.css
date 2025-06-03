@@ -76,18 +76,6 @@ html, body {
     z-index: 10;
 }
 
-.popup-header {
-    position: sticky;
-    top: 0;
-    background-color: white;  /* important to cover scrolled content */
-    z-index: 10;              /* ensure it stays above content */
-    padding: 0px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: none;
-}
-
 .close-btn {
     border: none;
     background-color: grey;
