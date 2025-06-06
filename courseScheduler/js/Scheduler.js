@@ -54,9 +54,9 @@ document.getElementById('search-form').addEventListener('submit', async function
             clearTimeout(clickTimer);
             clickTimer = null;
             
-            // Add a course to the listing
+            // Add a course to the listing (In a table body)
             savedCourss.addCourse(course);
-            savedCourss.updateDisplay(document.getElementById('saved-courses'));
+            savedCourss.updateDisplay(document.getElementById('saved-courses').children[1]);
         });
         
         // Add to results list

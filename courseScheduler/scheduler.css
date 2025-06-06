@@ -90,6 +90,10 @@ html, body {
     background-color: rgb(220,50,50);
 }
 
+#saved_courses td:nth-child(2) {
+    background-color: #f8f9fa;
+}
+
 /* ============================================================
 popup using interactJS, ty ChatGPT
 ============================================================ */ 

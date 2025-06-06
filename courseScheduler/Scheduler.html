@@ -37,9 +37,10 @@ By ChatGPT
                 <div id="drag-handle"></div>
                 
                 <!-- Bottom: info area -->
-                <div id="saved-courses" class="border p-2 bg-white overflow-auto">
-                    <table>
-                        <thead>
+                <div class="border p-2 bg-white overflow-auto">
+                    
+                    <table id="saved-courses" class="table table-bordered text-center align-middle">
+                        <thead class="table-light">
                             <tr>
                                 <th>Class Name</th>
                                 <th>Credits</th>
@@ -47,18 +48,11 @@ By ChatGPT
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>Math</td>
-                                <td>3</td>
-                                <td><i class="bi bi-toggle-off"></i></td>
-                                <td><i class="bi bi-trash"></i></td>
-                            </tr>
-                            <tr>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
-
+                    <i class="bi bi-toggle-off"></i>
+                    <i class="bi bi-trash"></i>
+                    
                     <div id="info-area" style='display: none;'>
                         <div>Saved and generated schedules</div>
                         

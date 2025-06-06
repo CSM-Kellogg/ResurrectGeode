@@ -1,4 +1,5 @@
 // By: Liam Kellogg
+import { decodeHTML } from "./utils.js";
 
 // Is signleton
 class savedCourses {
@@ -29,8 +30,8 @@ class savedCourses {
         this.courseList.push(course);
     }
 
-    removeCourse(index) {
-        this.courseList.splice(index);
+    removeCourse(course) {
+        // Find course by object name and delete it
     }
 
     /**
@@ -41,15 +42,48 @@ class savedCourses {
         // Find out what elements need to be deleted and added (doing this later, for now gonna refresh the whole thing)
         let currentCourseList = [];
         Array.from(parent.children).forEach((element) => {
-            // Add to the current course list.
+            let decoded = decodeHTML(element.children[0].innerHTML)
+            currentCourseList.push(decoded);
         });
 
-        parent.innerHTML = "";
-
+        // Now, add it to the list with the HTML.
         this.courseList.forEach((element) => {
-            const someCourse = document.createElement('div');
-            someCourse.innerHTML = element['class name'];
-            parent.appendChild(someCourse);
+
+            let decoded_name = decodeHTML(element['class name']);
+
+            console.log(currentCourseList);
+            console.log(decoded_name);
+
+            if (!currentCourseList.includes(decoded_name)) {
+                const someCourse = document.createElement('tr');
+                
+                const name = document.createElement('td');
+                name.innerHTML = decoded_name;
+                someCourse.appendChild(name);
+                
+                const credits = document.createElement('td');
+                credits.innerHTML = element['credits'];
+                someCourse.appendChild(credits);
+
+                const toggle = document.createElement('td');
+                toggle.innerHTML = '<button>toggle btn</button>';
+                someCourse.append(toggle);
+
+                const deleteIt = document.createElement('td');
+                const rmbtn = document.createElement('button');
+                deleteIt.appendChild(rmbtn);
+                rmbtn.innerHTML = '<i class="bi bi-trash"></i>';
+
+                rmbtn.addEventListener('click', () => {
+                    this.removeCourse(element);
+                    this.updateDisplay(parent); // Call another update
+                    console.log("removed");
+                });
+
+                someCourse.append(deleteIt);
+
+                parent.appendChild(someCourse);
+            }
         });
     }
 
