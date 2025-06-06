@@ -71,7 +71,7 @@ class savedCourses {
             someCourse.appendChild(credits);
 
             const toggle = document.createElement('td');
-            toggle.innerHTML = '<button>toggled ON</button>';
+            toggle.innerHTML = '<button>ON</button>';
             someCourse.append(toggle);
 
             const deleteIt = document.createElement('td');

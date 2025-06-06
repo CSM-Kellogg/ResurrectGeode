@@ -57,23 +57,26 @@ html, body {
     flex-direction: row;
     height: 100vh;
     overflow: hidden;
+    width: 100%;
 }
 
 #left-column {
     min-width: 200px;
     max-width: 80%;
+    white-space: nowrap;
 }
 
 #right-column {
     min-width: 200px;
     overflow: auto;
+    white-space: nowrap;
 }
 
 #vertical-drag {
     background-color: #ccc;
     width: 6px;
     cursor: col-resize;
-    z-index: 10;
+    min-height: 100%;
 }
 
 .close-btn {
@@ -90,39 +93,46 @@ html, body {
     background-color: rgb(220,50,50);
 }
 
+.flex-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 /*==================================
 Schedule layout
 ==================================*/
 
-.schedule {
-    display: grid;
-    grid-template-columns: 80px repeat(7, 1fr);
+table.schedule-table {
+    width: 100%;
+    /* table-layout: fixed; */
+    border-collapse: collapse;
+    flex: 1;
 }
 
-.time-label {
+.schedule-table th,
+.schedule-table td {
     border: 1px solid #dee2e6;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+    height: 15px;
+    min-width: 25px;
+    font-size: 0.75rem;
+}
+
+.time-cell {
+    width: 80px;
     text-align: right;
     padding-right: 0.5rem;
-    font-size: 0.8rem;
-    height: 60px; /* 2 x 30min blocks = 4 x 15min blocks */
+    background-color: #f8f9fa;
+    font-weight: bold;
 }
 
-.day-cell {
-    border: 1px solid #dee2e6;
-    height: 15px;
-    position: relative;
-}
-
-.event-block {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: rgba(0, 123, 255, 0.6);
-    border-radius: 4px;
-    font-size: 0.7rem;
-    color: white;
-    padding: 2px 4px;
+.schedule-block {
+    background-color: rgba(0, 123, 255, 0.4);
+    height: 100%;
+    width: 100%;
 }
 
 /* ============================================================

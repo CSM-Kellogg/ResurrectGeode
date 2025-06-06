@@ -64,51 +64,39 @@ class genSchedule {
     // Draw the background to the schedule dynamically
     // By Chat GPT ( NOT CLEANED YET )
     drawBackground() {
-        const scheduleGrid = document.getElementById("scheduleGrid");
+        const scheduleBody = document.getElementById("scheduleBody");
         
-        function pad(n) {
-            return n.toString().padStart(2, '0');
+        function formatTime(h, m) {
+            const hour = h % 12 === 0 ? 12 : h % 12;
+            const suffix = h < 12 ? "AM" : "PM";
+            return `${hour}:${m.toString().padStart(2, "0")} ${suffix}`;
         }
         
-        function formatTime(hour, minutes) {
-            const ampm = hour < 12 ? 'AM' : 'PM';
-            const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-            return `${hour12}:${pad(minutes)} ${ampm}`;
-        }
-        
-        // Fill time and cells
-        for (let h = 0; h < 12; h++) { // 12 AM to 11:45 AM
-            for (let m = 0; m < 60; m += 15) {
-                const label = document.createElement("div");
-                label.className = "time-label";
-                // Only show time label text on 30-minute marks
-                label.textContent = (m % 30 === 0) ? formatTime(h, m) : '';
-                scheduleGrid.appendChild(label);
+        for (let h = 6; h < 22; h++) {
+            for (let m of [0, 15, 30, 45]) {
+                const row = document.createElement("tr");
                 
-                for (let d = 0; d < 7; d++) {
-                    const cell = document.createElement("div");
-                    cell.className = "day-cell";
-                    cell.dataset.day = d;
-                    cell.dataset.index = h * 4 + m / 15;
-                    scheduleGrid.appendChild(cell);
+                // Time cell every 30 minutes (spanning 2 rows)
+                if (m % 30 === 0) {
+                    const timeCell = document.createElement("td");
+                    timeCell.className = "time-cell";
+                    timeCell.textContent = formatTime(h, m);
+                    timeCell.rowSpan = 2;
+                    row.appendChild(timeCell);
                 }
+                
+                // Day cells
+                for (let d = 0; d < 5; d++) {
+                    const cell = document.createElement("td");
+                    cell.className = "day-slot";
+                    cell.dataset.day = d;
+                    cell.dataset.time = `${h}:${m}`;
+                    row.appendChild(cell);
+                }
+                
+                scheduleBody.appendChild(row);
             }
         }
-    }
-    
-    // By ChatGPT
-    addEvent(day, startRow, durationBlocks, label = "Event") {
-        const cells = document.querySelectorAll(`.day-cell[data-day='${day}']`);
-        const container = cells[startRow];
-        if (!container) return;
-        
-        const event = document.createElement("div");
-        event.className = "event-block";
-        event.style.top = "0";
-        event.style.height = `${15 * durationBlocks}px`;
-        event.textContent = label;
-        
-        container.appendChild(event);
     }
 }
 

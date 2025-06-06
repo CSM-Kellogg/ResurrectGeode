@@ -26,12 +26,12 @@ By ChatGPT
             <!-- Left Column -->
             <div id="left-column" class="left-pane d-flex flex-column border-end" style="width: 50%;">
                 <!-- Top: status area -->
-                <div  id="left-top" class="border p-2 bg-light">
+                <div id="left-top" class="border p-2 bg-light" style="height: 50%;">
                     <div>Selected courses here</div>
                     <form id="search-form">
                         <input type="text" placeholder="Search by keyword" id="keyword-search" autocomplete="off" class="form-control mb-2">
                     </form>
-                    <ul id="search-results" class="list-group" style="max-height: 200px; overflow-y: auto;"></ul>
+                    <ul id="search-results" class="list-group" style="overflow-y: auto;"></ul>
                 </div>
                 
                 <div id="drag-handle"></div>
@@ -62,27 +62,29 @@ By ChatGPT
                 </div>
             </div>
             
-            <div id="vertical-drag" style="width: 6px; cursor: col-resize; background: #ccc;"></div>
+            <div id="vertical-drag"></div>
             
             <!-- Right Column -->
             <div id="right-column" class="border p-0 flex-grow-1">
                 current selected schedule
-                <div id="sectionContainer">
-                    <h4 class="mb-3">Schedule (12 AM – 12 PM)</h4>
-                    <div class="schedule" id="scheduleGrid">
-                        <!-- Header Row -->
-                        <div></div>
-                        <div class="text-center fw-bold">S</div>
-                        <div class="text-center fw-bold">M</div>
-                        <div class="text-center fw-bold">T</div>
-                        <div class="text-center fw-bold">W</div>
-                        <div class="text-center fw-bold">T</div>
-                        <div class="text-center fw-bold">F</div>
-                        <div class="text-center fw-bold">S</div>
-                        
-                        <!-- Time rows -->
-                        <!-- JS will fill from 12:00 AM to 12:00 PM -->
-                    </div>
+                <div class="flex-container">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <!-- <th>Sun</th> -->
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th>Fri</th>
+                                <!-- <th>Sat</th> -->
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                            <!-- Schedule rows will be added here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
