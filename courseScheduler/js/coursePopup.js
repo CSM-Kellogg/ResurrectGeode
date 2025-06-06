@@ -1,3 +1,5 @@
+import savedCourse from './savedCourses.js';
+
 // Displays content of selected course
 // Collaboration of Liam Kellogg and ChatGPT
 
@@ -63,6 +65,12 @@ export function displayCourseContent(course) {
     const header = template.content.cloneNode(true);
 
     header.querySelector(".close-btn").onclick = () => floatBox.remove();
+
+    // Add course btn
+    header.querySelector("#add-course-btn").onclick = () => {
+        savedCourse.addCourse(course); // Is singleton
+    };
+
     floatBox.appendChild(header);
     
     // Body of the info box

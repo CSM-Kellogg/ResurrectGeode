@@ -90,8 +90,39 @@ html, body {
     background-color: rgb(220,50,50);
 }
 
-#saved_courses td:nth-child(2) {
-    background-color: #f8f9fa;
+/*==================================
+Schedule layout
+==================================*/
+
+.schedule {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+}
+
+.time-label {
+    border: 1px solid #dee2e6;
+    text-align: right;
+    padding-right: 0.5rem;
+    font-size: 0.8rem;
+    height: 60px; /* 2 x 30min blocks = 4 x 15min blocks */
+}
+
+.day-cell {
+    border: 1px solid #dee2e6;
+    height: 15px;
+    position: relative;
+}
+
+.event-block {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 123, 255, 0.6);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: white;
+    padding: 2px 4px;
 }
 
 /* ============================================================

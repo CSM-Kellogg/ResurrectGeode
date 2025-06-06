@@ -5,6 +5,7 @@ import { decodeHTML } from "./utils.js";
 class savedCourses {
     // Stores course in entirety
     courseList = [];
+    parentNode = null;
 
     // Singleton constructor
     constructor() {
@@ -14,6 +15,9 @@ class savedCourses {
         // If it therefore not am, create a new instance and initialize it
         savedCourses._instance = this;
         this.courseList = [];
+
+        // There MUST be a better way of handling this but I am unsure :(
+        this.parentNode = document.getElementById('saved-courses').children[1];
     }
     
     /**
@@ -26,12 +30,21 @@ class savedCourses {
             console.log("course already added");
             return;
         }
-
         this.courseList.push(course);
+        this.updateDisplay(this.parentNode);
     }
 
     removeCourse(course) {
         // Find course by object name and delete it
+        let atIndex = this.courseList.indexOf(course);
+
+        if (atIndex == -1) {
+            console.warn("Error removing course, course not found");
+            console.log(course);
+            console.log(this.courseList);
+        } else {
+            this.courseList.splice(atIndex, 1);
+        }
     }
 
     /**
@@ -39,51 +52,40 @@ class savedCourses {
      * @param {HTMLElement} parent Displays to the specified html element
      */
     updateDisplay(parent) {
-        // Find out what elements need to be deleted and added (doing this later, for now gonna refresh the whole thing)
-        let currentCourseList = [];
-        Array.from(parent.children).forEach((element) => {
-            let decoded = decodeHTML(element.children[0].innerHTML)
-            currentCourseList.push(decoded);
-        });
+        // Clear existing list
+        parent.innerHTML = '';
 
-        // Now, add it to the list with the HTML.
         this.courseList.forEach((element) => {
 
+            // Have to sort out this bug in searchCatalog
             let decoded_name = decodeHTML(element['class name']);
 
-            console.log(currentCourseList);
-            console.log(decoded_name);
+            const someCourse = document.createElement('tr');
+            
+            const name = document.createElement('td');
+            name.innerHTML = decoded_name;
+            someCourse.appendChild(name);
+            
+            const credits = document.createElement('td');
+            credits.innerHTML = element['credits'];
+            someCourse.appendChild(credits);
 
-            if (!currentCourseList.includes(decoded_name)) {
-                const someCourse = document.createElement('tr');
-                
-                const name = document.createElement('td');
-                name.innerHTML = decoded_name;
-                someCourse.appendChild(name);
-                
-                const credits = document.createElement('td');
-                credits.innerHTML = element['credits'];
-                someCourse.appendChild(credits);
+            const toggle = document.createElement('td');
+            toggle.innerHTML = '<button>toggled ON</button>';
+            someCourse.append(toggle);
 
-                const toggle = document.createElement('td');
-                toggle.innerHTML = '<button>toggle btn</button>';
-                someCourse.append(toggle);
+            const deleteIt = document.createElement('td');
+            const rmbtn = document.createElement('button');
+            deleteIt.appendChild(rmbtn);
+            rmbtn.innerHTML = '<i class="bi bi-trash"></i>';
 
-                const deleteIt = document.createElement('td');
-                const rmbtn = document.createElement('button');
-                deleteIt.appendChild(rmbtn);
-                rmbtn.innerHTML = '<i class="bi bi-trash"></i>';
+            rmbtn.addEventListener('click', () => {
+                this.removeCourse(element);
+                this.updateDisplay(parent); // Call another update
+            });
 
-                rmbtn.addEventListener('click', () => {
-                    this.removeCourse(element);
-                    this.updateDisplay(parent); // Call another update
-                    console.log("removed");
-                });
-
-                someCourse.append(deleteIt);
-
-                parent.appendChild(someCourse);
-            }
+            someCourse.append(deleteIt);
+            parent.appendChild(someCourse);
         });
     }
 

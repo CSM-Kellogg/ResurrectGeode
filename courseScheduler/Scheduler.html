@@ -39,7 +39,7 @@ By ChatGPT
                 <!-- Bottom: info area -->
                 <div class="border p-2 bg-white overflow-auto">
                     
-                    <table id="saved-courses" class="table table-bordered text-center align-middle">
+                    <table id="saved-courses" class="table table-bordered text-center align-left overflow-hidden">
                         <thead class="table-light">
                             <tr>
                                 <th>Class Name</th>
@@ -65,9 +65,25 @@ By ChatGPT
             <div id="vertical-drag" style="width: 6px; cursor: col-resize; background: #ccc;"></div>
             
             <!-- Right Column -->
-            <div id="right-column" class="border p-2 bg-secondary text-white overflow-auto flex-grow-1">
+            <div id="right-column" class="border p-0 flex-grow-1">
                 current selected schedule
-                <div id="sectionContainer"></div>
+                <div id="sectionContainer">
+                    <h4 class="mb-3">Schedule (12 AM – 12 PM)</h4>
+                    <div class="schedule" id="scheduleGrid">
+                        <!-- Header Row -->
+                        <div></div>
+                        <div class="text-center fw-bold">S</div>
+                        <div class="text-center fw-bold">M</div>
+                        <div class="text-center fw-bold">T</div>
+                        <div class="text-center fw-bold">W</div>
+                        <div class="text-center fw-bold">T</div>
+                        <div class="text-center fw-bold">F</div>
+                        <div class="text-center fw-bold">S</div>
+                        
+                        <!-- Time rows -->
+                        <!-- JS will fill from 12:00 AM to 12:00 PM -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -76,6 +92,7 @@ By ChatGPT
         <header class="header d-flex align-items-center border-bottom">
             <button class="close-btn">×</button>
             <h5 class="mb-0 fw-bold text-dark me-auto px-2">Selected Course Info</h5>
+            <button id="add-course-btn">Add</button>
         </header>
     </template>
 </body>
