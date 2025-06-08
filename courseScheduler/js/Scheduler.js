@@ -2,10 +2,43 @@ import catalog from './Catalog.js';
 import { displayCourseContent } from './coursePopup.js';
 import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
+import genScheduleInstance from './generateSchedules.js';
 
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
   genSchedule.drawBackground();
+});
+
+//wasn't too sure where to put this, you can move it if you would like:)
+document.getElementById("next-schedule").addEventListener("click", () => {
+    genSchedule.nextSchedule();
+});
+
+document.getElementById("prev-schedule").addEventListener("click", () => {
+    genSchedule.prevSchedule();
+});
+
+document.getElementById("generate-schedule").addEventListener("click", () => {
+    const courses = savedCourses.getCourses();
+    if (courses.length === 0) {
+        alert("No courses selected. Add some first.");
+        return;
+    }
+    genSchedule.generate(courses);
+});
+
+let intervalId = null;
+let currentDirection = null;
+
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowRight") {
+    console.log(event.key)
+    genScheduleInstance.nextSchedule();
+  } else if (event.key === "ArrowLeft") {
+    console.log(event.key)
+    genScheduleInstance.prevSchedule();
+  }
 });
 
 // Submission to search box

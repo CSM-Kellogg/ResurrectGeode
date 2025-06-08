@@ -135,6 +135,15 @@ table.schedule-table {
     width: 100%;
 }
 
+#schedule-nav button {
+    width: 2rem;
+    padding: 0.25rem 0;
+    line-height: 1;
+}
+
+#schedule-counter {
+    text-align: center;
+}
 /* ============================================================
 popup using interactJS, ty ChatGPT
 ============================================================ */ 
@@ -151,6 +160,8 @@ popup using interactJS, ty ChatGPT
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     resize: none; /* Disable native resizer */
     z-index: 11;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .resize-drag {

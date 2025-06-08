@@ -19,6 +19,7 @@ class savedCourses {
 
         // There MUST be a better way of handling this but I am unsure :(
         this.parentNode = document.getElementById('saved-courses').children[1];
+        this.loadSavedCourses();
     }
     
     /**
@@ -26,13 +27,17 @@ class savedCourses {
      * @param {Course} course appends a course (in its entirety to the saved courses)
      */
     addCourse(course) {
-        // Check if course exists already
         if (this.courseList.some(map => map["class name"] === course['class name'])) {
             console.log("course already added");
             return;
         }
         this.courseList.push(course);
         this.updateDisplay(this.parentNode);
+
+        // Save to chrome storage
+        chrome.storage.local.set({ savedCourses: this.courseList }, () => {
+            console.log("Courses saved to storage");
+        });
     }
 
     removeCourse(course) {
@@ -45,9 +50,18 @@ class savedCourses {
             console.log(this.courseList);
         } else {
             this.courseList.splice(atIndex, 1);
+            chrome.storage.local.set({ savedCourses: this.courseList }, () => {
+            });
         }
     }
-
+    loadSavedCourses() {
+        chrome.storage.local.get(['savedCourses'], (result) => {
+            if (result.savedCourses && Array.isArray(result.savedCourses)) {
+                this.courseList = result.savedCourses;
+                this.updateDisplay(this.parentNode);
+            }
+        });
+    }
     /**
      * 
      * @param {HTMLElement} parent Displays to the specified html element
@@ -87,7 +101,21 @@ class savedCourses {
             parent.appendChild(tableRow);
         });
     }
+    updateCounter() {
+        const counter = document.getElementById("schedule-counter");
+        const prevBtn = document.getElementById("prev-schedule");
+        const nextBtn = document.getElementById("next-schedule");
 
+        const total = this.savedSchedules.length;
+        const index = this.currentIndex + 1;
+
+        if (counter) counter.textContent = `${index} / ${total}`;
+
+        // Disable if only one or zero schedules
+        const shouldDisable = total <= 1;
+        if (prevBtn) prevBtn.disabled = shouldDisable;
+        if (nextBtn) nextBtn.disabled = shouldDisable;
+    }
     getCourses() {
         return this.courseList;
     }

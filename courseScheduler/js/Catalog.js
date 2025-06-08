@@ -58,7 +58,29 @@ class Catalog {
             // The dictionary for a certain row
             const obj = {};
             HEADERS.forEach((key, j) => {
-                obj[key] = row[j];
+                let value = row[j];
+
+                if (key === "sectionListing") {
+                    try {
+                        const cleaned = value
+                            .replaceAll(/,\s*]/g, ']')           // fix trailing commas
+                            .replaceAll(/'/g, '"')               // single to double quotes
+                            .replaceAll(/\\"/g, '"')             // double escaped quotes
+                            .replaceAll(/"{2,}/g, '"');          // collapse duplicate quotes
+
+                        const parsed = JSON.parse(cleaned);
+                        if (!Array.isArray(parsed) || !Array.isArray(parsed[0])) {
+                            throw new Error("sectionListing is not array of arrays");
+                        }
+
+                        value = parsed;
+                    } catch (err) {
+                        console.warn("🚫 Failed to parse sectionListing:", value);
+                        value = [];
+                    }
+                }
+
+                obj[key] = value;
             });
             return obj;
         });

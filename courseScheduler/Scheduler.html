@@ -52,7 +52,7 @@ By ChatGPT
                     </table>
                     <i class="bi bi-toggle-off"></i>
                     <i class="bi bi-trash"></i>
-                    
+                    <button id="generate-schedule" class="btn btn-primary btn-sm mt-2">Generate Schedules</button>
                     <div id="info-area" style='display: none;'>
                         <div>Saved and generated schedules</div>
                         
@@ -70,7 +70,13 @@ By ChatGPT
                     <table class="schedule-table">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th id="nav-cell">
+                                    <div id="schedule-nav" class="d-flex flex-column gap-1 align-items-center">
+                                        <button id="prev-schedule" class="btn btn-outline-dark btn-sm" title="Previous schedule">←</button>
+                                        <span id="schedule-counter" style="font-size: 0.8rem;">0 / 0</span>
+                                        <button id="next-schedule" class="btn btn-outline-dark btn-sm" title="Next schedule">→</button>
+                                    </div>
+                                </th>
                                 <!-- <th>Sun</th> -->
                                 <th>Mon</th>
                                 <th>Tue</th>
