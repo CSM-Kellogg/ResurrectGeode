@@ -1,6 +1,6 @@
 import catalog from './Catalog.js';
 import { displayCourseContent } from './coursePopup.js';
-import savedCourss from './savedCourses.js';
+import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
 
 // Dynamically loads in the schedule background
@@ -15,6 +15,7 @@ document.getElementById('search-form').addEventListener('submit', async function
     
     const inputValue = document.getElementById('keyword-search').value;
     // Search for matches using the form submission
+    await catalog.ready;
     const results = catalog.search(inputValue);
     
     const list = document.getElementById('search-results');
@@ -28,10 +29,6 @@ document.getElementById('search-form').addEventListener('submit', async function
         list.appendChild(item);
         return;
     }
-    
-    //console.log(`results length: ${results.length}`);
-    
-    let selection = false;
     
     // For each result, print the class as a search result
     results.forEach(course => {
@@ -50,9 +47,13 @@ document.getElementById('search-form').addEventListener('submit', async function
             clickTimer = setTimeout(() => {
                 clickTimer = null;
                 
-                // display Sections
-                selection = !selection;
-                displayCourseContent(course);
+                // Display the popup box and add in some event listeners. I
+                // actually don't know what the 'proper' solution is, but I
+                // think that coursePopup shouldn't reference savedCourses.js.
+                const floatBox = displayCourseContent(course);
+                floatBox.querySelector("#add-course-btn").onclick = () => {
+                    savedCourses.addCourse(course); // Is singleton
+                };
             }, 250);
         });
         
@@ -61,7 +62,7 @@ document.getElementById('search-form').addEventListener('submit', async function
             clickTimer = null;
             
             // Add a course to the listing (In a table body)
-            savedCourss.addCourse(course);
+            savedCourses.addCourse(course);
         });
         
         // Add to results list

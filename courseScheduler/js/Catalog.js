@@ -22,7 +22,7 @@ class Catalog {
         
         // If it therefore not am, create a new instance and initialize it
         Catalog._instance = this;
-        this.#loadCatalog(); // Load in the catalog
+        this.ready = this.#loadCatalog(); // Load in the catalog
     }
 
     // Loads in the catalog from file.

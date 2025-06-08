@@ -1,5 +1,6 @@
 // By: Liam Kellogg
 import { decodeHTML } from "./utils.js";
+import { displayCourseContent } from './coursePopup.js';
 
 // Is signleton
 class savedCourses {
@@ -60,32 +61,30 @@ class savedCourses {
             // Have to sort out this bug in searchCatalog
             let decoded_name = decodeHTML(element['class name']);
 
-            const someCourse = document.createElement('tr');
+            // Retrieve the template
+            const template = document.getElementById('saved-course-table-template');
+            const tableRow = template.content.cloneNode(true);
+
+            // Add the content and event listeners.
+            const nameBtn = tableRow.querySelector('td[data="name"] button');
+            nameBtn.innerHTML = decoded_name;
+            nameBtn.className = 'list-group-item list-group-item-action';
+            nameBtn.addEventListener('click', () => {
+                displayCourseContent(element); // Display some info
+            });
+
+            tableRow.querySelector('td[data="credits"]').innerHTML = element['credits'];
             
-            const name = document.createElement('td');
-            name.innerHTML = decoded_name;
-            someCourse.appendChild(name);
-            
-            const credits = document.createElement('td');
-            credits.innerHTML = element['credits'];
-            someCourse.appendChild(credits);
+            tableRow.querySelector('td[data="toggler"] button').addEventListener('click', () => {
 
-            const toggle = document.createElement('td');
-            toggle.innerHTML = '<button>ON</button>';
-            someCourse.append(toggle);
+            });
 
-            const deleteIt = document.createElement('td');
-            const rmbtn = document.createElement('button');
-            deleteIt.appendChild(rmbtn);
-            rmbtn.innerHTML = '<i class="bi bi-trash"></i>';
-
-            rmbtn.addEventListener('click', () => {
+            tableRow.querySelector('td[data="trash-course"] button').addEventListener('click', () => {
                 this.removeCourse(element);
                 this.updateDisplay(parent); // Call another update
             });
 
-            someCourse.append(deleteIt);
-            parent.appendChild(someCourse);
+            parent.appendChild(tableRow);
         });
     }
 

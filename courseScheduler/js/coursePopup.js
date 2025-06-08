@@ -1,5 +1,3 @@
-import savedCourse from './savedCourses.js';
-
 // Displays content of selected course
 // Collaboration of Liam Kellogg and ChatGPT
 
@@ -52,7 +50,7 @@ export function displayCourseContent(course) {
     // Remove previous floating box if present
     let floatBox = document.getElementById('floating-popup');
     if (floatBox) {
-        floatBox.innerHTML=''
+        floatBox.innerHTML='';
     } else {
         // create n new one if not
         floatBox = document.createElement('div');
@@ -65,11 +63,6 @@ export function displayCourseContent(course) {
     const header = template.content.cloneNode(true);
 
     header.querySelector(".close-btn").onclick = () => floatBox.remove();
-
-    // Add course btn
-    header.querySelector("#add-course-btn").onclick = () => {
-        savedCourse.addCourse(course); // Is singleton
-    };
 
     floatBox.appendChild(header);
     
@@ -95,4 +88,6 @@ export function displayCourseContent(course) {
     addInfo('Course Description', course['coursedescription'] || "None");
     
     document.body.appendChild(floatBox);
+
+    return floatBox;
 }

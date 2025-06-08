@@ -39,7 +39,7 @@ By ChatGPT
                 <!-- Bottom: info area -->
                 <div class="border p-2 bg-white overflow-auto">
                     
-                    <table id="saved-courses" class="table table-bordered text-center align-left overflow-hidden">
+                    <table id="saved-courses" class="table table-bordered p-1 align-left align-middle overflow-hidden">
                         <thead class="table-light">
                             <tr>
                                 <th>Class Name</th>
@@ -66,7 +66,6 @@ By ChatGPT
             
             <!-- Right Column -->
             <div id="right-column" class="border p-0 flex-grow-1">
-                current selected schedule
                 <div class="flex-container">
                     <table class="schedule-table">
                         <thead>
@@ -89,13 +88,32 @@ By ChatGPT
             </div>
         </div>
     </div>
-    <!--Interesting choice, but idk anymore-->
-    <template id="course-header-template" style="display: none;">
-        <header class="header d-flex align-items-center border-bottom">
-            <button class="close-btn">×</button>
-            <h5 class="mb-0 fw-bold text-dark me-auto px-2">Selected Course Info</h5>
-            <button id="add-course-btn">Add</button>
-        </header>
-    </template>
 </body>
+
+<!--Interesting choice, but idk anymore-->
+<!-- This template is for the popup box -->
+<template id="course-header-template">
+    <header class="header d-flex align-items-center border-bottom">
+        <button class="close-btn">×</button>
+        <h5 class="mb-0 fw-bold text-dark me-auto px-2">Selected Course Info</h5>
+        <button id="add-course-btn">Add</button>
+    </header>
+</template>
+
+<!-- This template is for the row in the saved courses tab and its table -->
+<template id="saved-course-table-template">
+    <tr>
+        <td data="name">
+            <button class="list-group-item list-group-item-action"></button>
+        </td>
+        <td class="text-center" data="credits"></td>
+        <td class="d-flex p-2" data="toggler">
+            <button class="text-center list-group-item list-group-item-action">ON</button>
+        </td>
+        <td data="trash-course">
+            <button class="text-center list-group-item list-group-item-action"><i class="bi bi-trash"></i></button>
+        </td>
+    </tr>
+</template>
+
 </html>
