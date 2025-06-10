@@ -1,4 +1,5 @@
 // Another singleton class that generates and saves schedules (also temporarily holds them)
+// By: Liam Kellogg, Grey Garner, and some ChatGPT
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -28,9 +29,10 @@ class genSchedule {
         this.currentIndex = 0;
     }
 
+    // Generates a schedule from courses considering all sections
     generate(selectedCourses) {
         const allSections = selectedCourses.map(course => {
-            //console.log("🔍 sectionListing RAW:", course.sectionListing);
+            // Some sanitization of input - REPLACE WITH A CHECK FOR NULL AND PROPER PARSING
             let sections = course.sectionListing;
             try {
                 if (!Array.isArray(sections)) throw new Error("Parsed sectionListing is not an array.");
@@ -40,11 +42,10 @@ class genSchedule {
                 return [];
             }
 
+            // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
-                //console.log('mapping',section)
                 if (Array.isArray(section)) {
-                    //console.log("🎯 Parsed SECTION:", section);
-                    //console.log("RAW SECTION ARRAY:", section);
+                    // The map keys for our catalog.csv. I Need to have a better way of storing this
                     const [
                         CRN,              // e.g. '82325'
                         courseType,       // e.g. 'Lecture'
@@ -83,19 +84,23 @@ class genSchedule {
                     console.warn("Skipping malformed section:", section);
                     return null;
                 }
-            }).filter(Boolean);
+            }).filter(Boolean); // Only filters out non-null returns
         });
 
+        // Stores all valid schedules
         const validSchedules = [];
 
+        // Recursion through a lambda expression...
+        // Could be a good standard to have.
         const recurse = (depth, currentSchedule) => {
-            if (depth === allSections.length) {
-                if (!this.hasConflict(currentSchedule)) {
-                    validSchedules.push([...currentSchedule]);
+            if (depth === allSections.length) { // If we have gone through all sections
+                if (!this.hasConflict(currentSchedule)) { // And no conflict
+                    validSchedules.push([...currentSchedule]); // Append to valid schedules
                 }
                 return;
             }
 
+            // Build the current schedule from all sections
             for (const section of allSections[depth]) {
                 currentSchedule.push(section);
                 recurse(depth + 1, currentSchedule);
@@ -103,9 +108,11 @@ class genSchedule {
             }
         };
 
-        recurse(0, []);
-        console.log(`Generated ${validSchedules.length} valid schedules`);
+        recurse(0, []); // Start recursion on empty schedule
+        // console.log(`Generated ${validSchedules.length} valid schedules`);
 
+
+        // Display schedules
         this.savedSchedules = validSchedules;
         this.currentIndex = 0;
 
@@ -113,6 +120,7 @@ class genSchedule {
         this.updateCounter();
     }
 
+    // Next and previous button logic for iterating through available schedules
     nextSchedule() {
         if (this.savedSchedules.length === 0) return;
         this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
@@ -127,6 +135,8 @@ class genSchedule {
         this.updateCounter();
     }
 
+    // Updates the HTML on the selected schedule as well as the total number of
+    // possible schedules
     updateCounter() {
         const counter = document.getElementById("schedule-counter");
         const prevBtn = document.getElementById("prev-schedule");
@@ -142,11 +152,15 @@ class genSchedule {
         if (nextBtn) nextBtn.disabled = shouldDisable;
     }
 
+    // Save a course as its CRNs so that the user can come back to it later
     saveCourse(CRNList) {}
 
     removeSavedCourse(index) {
         this.savedSchedules.splice(index, 1);
     }
+
+    // Helper for generate to check for conflicts in a schedule...
+    // Can be O(1) and not O(m) but idc
     hasConflict(schedule) {
         const timeBlocks = [];
 
@@ -174,6 +188,7 @@ class genSchedule {
         return false; // ✅ No conflicts
     }
 
+    // Parses AM/PM time into an integer of minutes from midnight
     parseTime(timeStr) {
         const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
         const parts = cleaned.split(' ');
@@ -186,8 +201,9 @@ class genSchedule {
         if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
 
         return hour * 60 + minute;
-        }
+    }
 
+    // Displays the schedule -- needs some work.
     displaySchedule(someSchedule) {
         const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
         document.querySelectorAll(".schedule-block").forEach(el => el.remove());
@@ -255,6 +271,7 @@ class genSchedule {
         }
     }
 
+    // Draws the background of the schedule as a table
     drawBackground() {
         const scheduleBody = document.getElementById("scheduleBody");
 
@@ -290,5 +307,6 @@ class genSchedule {
     }
 }
 
+// Export the signleton class
 const genScheduleInstance = new genSchedule();
 export default genScheduleInstance;

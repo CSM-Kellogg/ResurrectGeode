@@ -160,8 +160,8 @@ popup using interactJS, ty ChatGPT
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     resize: none; /* Disable native resizer */
     z-index: 11;
-    padding: 16px;
-    box-sizing: border-box;
+    /* padding: 16px;
+    box-sizing: border-box; */
 }
 
 .resize-drag {

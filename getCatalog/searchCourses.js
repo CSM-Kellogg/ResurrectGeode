@@ -6,17 +6,32 @@
  * 1. handle timeout and drop in connection (might be impossible due to how we are injecting the script)
  * 2. Co-requisites (also the difference between pre-requisites and Prerequisites and Prerequisite)
  * 3. The classes that didn't load at all
- * 4. Linked Courses (like Chem121)
- * 5. The PM,PM,PM bug
- * 6. Replace &amp;amp;amp; with &
+ * 4. Linked Courses (like Chem121) - DONE
+ * 5. The PM,PM,PM bug - DONE
+ * 6. Replace &amp;amp;amp; with & - DONE
  */
 
+// For the class details page
 CLASS_DEET_SELECT = [
     "CRN", "Campus", "Schedule Type", "Instructional Method", "Section Number",
     "Subject", "Course Number", "Title", "Credit Hours"
 ];
 
-DEBUG_MODE = false;
+DEBUG_MODE = true;
+
+// Takes stuff like &amp; out
+function decodeHTML(input) {
+    const parser = new DOMParser();
+    let prev, decoded = input;
+
+    do {
+        prev = decoded;
+        const doc = parser.parseFromString(prev, "text/html");
+        decoded = doc.documentElement.textContent;
+    } while (decoded !== prev);
+
+    return decoded;
+}
 
 function getElem(someXPath) {
     const elem = document.evaluate(
@@ -84,24 +99,16 @@ async function getSectionBody(headerXPath, target) {
 async function getClassDetailInfo(gypsum) {
     Abby = await getSectionBody('//*[@id="classDetails"]/a',
         '//section[contains(@aria-labelledby, "classDetails")]');
-    scoop = Abby.textContent.split(/([\n]|:)+/);
 
-    // Trims each element and filters out the delimiters
-    scoop = scoop.map(element => element.trim()).filter(
-        element => element !== '' &&
-        element !== ":"
-    );
-
-    // Need to parse out needed information
-    bucket = [];
-    while (scoop.length > 0) {
-        spoon = scoop.shift();
-
-        // For some input "CRN: 80321", this bit gets the "80321"
-        if (CLASS_DEET_SELECT.includes(spoon)) {
-            bucket.push(scoop.shift());
+    bucket = []
+    deets = Abby.querySelectorAll('span');
+    deets.forEach((span) => {
+        if (span.className == "status-bold") {
+            // pass
+        } else {
+            bucket.push(decodeHTML(span.innerHTML));
         }
-    }
+    });
 
     gypsum.push(...bucket);
 }
@@ -147,9 +154,11 @@ async function getMeetingInfo(powder) {
         '//div[@class="meetingTimesContainer"]');
 
     // Could be void of data (Broken rn, goto CSM MISC COURSE)
-    if (Cathy.textContent == "No specified meeting times") {
+    if (Cathy.textContent.includes("No specified")) {
         powder.push([null, null, null, null, null, null]);
         return;
+    } else {
+        console.log(Cathy.textContent);
     }
     
     // Wait for accordion to load
@@ -192,19 +201,17 @@ async function getMeetingInfo(powder) {
         // if the class is asynchronous, then this element DNE
         let daysOfWeek, time, classroom;
         if (sheddule.attributes['title'].value == "Class on: None") { // The class doesn't meet
-
+            console.warn("Class doesn't meet");
         } else {
             // Days of the week
             daysOfWeek = sheddule.attributes['title'].value.split(':')[1];
             
             // Get time of day and location
-            timeAndLoc = element.querySelector('.right').textContent;
-            time = timeAndLoc.match(/[^A-z]*(AM|PM)[^A-z]+(AM|PM)/);
-            // location = timeAndLoc[len(time):].split('|')[1:]
-            classroom = timeAndLoc.slice(time.length).split('|').slice(1);
+            time = element.querySelector('.right div').textContent.match(/[^A-z]*(AM|PM)[^A-z]+(AM|PM)/)[0];
+            // The result is in the first index for some reason
+            // python equivalent: location = timeAndLoc[len(time):].split('|')[1:]
+            classroom = element.querySelector('.right').textContent.slice(time.length).split('|').slice(1);
         }
-        
-        // I DONT THINK THE ROOM IS IMPORTANT, SO IGNORING THAT FOR NOW
 
         powder.push([prof, profEmail, daysOfWeek, dates, time, classroom]);
     });
@@ -241,7 +248,7 @@ async function getMutualExclInfo(gypsum) {
 
     gypsum.push(mexcList);
 }
-    
+
 async function getCourseDescription(gypsum, prereqIndex) {
     Evelyn = await getSectionBody('//h3[@id="courseDescription"]/a',
         '//section[contains(@aria-labelledby, "courseDescription")]');
@@ -252,13 +259,34 @@ async function getCourseDescription(gypsum, prereqIndex) {
 
     // If we couldn't get pre-req info earlier, now is the time
     if (prereqIndex != null && gypsum[prereqIndex] == null) {
-        // Parse out the prereq part
-        prereqs = description.match(/(Prerequisites: ).*/)
+        // Parse out the prereq part (with all different ways the keyword can be typed)
+        prereqs = description.match(/((P|p)re(\-|)requisite(s|): ).*/);
         if (prereqs == null) return
         
         prereqs = prereqs[0].slice(15);
         gypsum[prereqIndex] = prereqs;
     }
+}
+
+async function getLinkedSections(gypsum) {
+    Florence = await getSectionBody('//h3[@id="linked"]/a',
+        '//section[contains(@aria-labelledby, "linked")]'
+    );
+
+    if (Florence.textContent.match('information available')) {
+        gypsum.push(null); // No linked sections
+        return;
+    }
+
+    // Gets all linked sections
+    allLinkedSections = [];
+
+    allTBody = Florence.querySelector('table').querySelectorAll('tbody');
+    allTBody.forEach((tbody) => {
+        allLinkedSections.push(tbody.children[0].lastElementChild.innerHTML);
+    });
+
+    gypsum.push(allLinkedSections);
 }
 
 async function getClassData(Alabaster) {
@@ -275,6 +303,7 @@ async function getClassData(Alabaster) {
 
     await getMutualExclInfo(medusa);
     await getCourseDescription(medusa, prereqIndex);
+    await getLinkedSections(medusa);
 
     // for each element in medusa, duplicate each element in alabaster and append the corresponding element in medusa
     Alabaster.forEach((element) => {
@@ -307,6 +336,8 @@ async function getPageOfClasses(quartz, pageRowNum) {
             quartz.push(...amethyst);
         } catch (e) {
             console.log(`Was unable to parse class, available data is: ${amethyst}`);
+            console.error(e);
+            throw new Error("fix dis shit rn okayz?");
         }
 
         // Close the window, we are done here
@@ -338,9 +369,10 @@ async function main() {
 
     classCatalog = []; // The catalog for a semester
 
+    // Load from chrome storage, if any is there
+
     (async () => {
         // Search all pages
-        let nextBtn;
         pageNum = 1;
         do {
             // Change the page size to 50
@@ -351,7 +383,7 @@ async function main() {
             elem.dispatchEvent(new Event('change', { bubbles: true }));
             
             // Wait for all the elements to load
-            await waitFor(() => getElem("//tbody").childElementCount == PAGE_SIZE);
+            if (!DEBUG_MODE) await waitFor(() => getElem("//tbody").childElementCount == PAGE_SIZE);
             
             // Get the page data
             Cramner = [];
@@ -360,17 +392,33 @@ async function main() {
             console.log(`Page ${pageNum} done`);
             pageNum ++;
 
-            nextBtn = getElem('//*[@title="Next"]');
             safeClick('//*[@title="Next"]');
 
             // Save the result into the end thingy
             await classCatalog.push(...Cramner);
 
-        } while(nextBtn.attributes['class'].value.match('enabled') != null && DEBUG_MODE == false);
+        } while(document.querySelector('button[title="Next"]').attributes['class'].value.match('enabled') != null && DEBUG_MODE == false);
 
         // Download the csv
-        download2DArray(classCatalog);
+        if (!DEBUG_MODE) {
+            download2DArray(classCatalog);
+        } else {
+            console.log(classCatalog);
+        }
+
+        // Remove from chrome storage
     })();
 }
 
 main();
+
+
+/**
+ * Some event listeners to gracefully exit in the event of a 500 error
+ */
+
+window.addEventListener('beforeunload', () => {
+    // Gracefully stop your script
+    console.log("Cleaning up before unload...");
+    // Store into local chrome storage.
+});
