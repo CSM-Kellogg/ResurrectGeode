@@ -83,9 +83,11 @@ export function displayCourseContent(course) {
 
     // Content of course
     addInfo('Campus & Credits', `${course['campus']}<br/><strong>Credits:</strong> ${course['credits']}`);
-    addInfo('Prerequisites', course['pre-reqs'] || "None");
-    addInfo('Mutual Exclusions', course['mutual exclusions'] || "None");
-    addInfo('Course Description', course['coursedescription'] || "None");
+    addInfo('Prerequisites', course['pre-reqs'] || "No pre-requisites");
+    if (course['mutual-exclusions']) addInfo('Mutual Exclusions', course['mutual exclusions']);
+    addInfo('Course Description', course['coursedescription'] || "No course description");
+
+    addInfo('Linked courses (TMP)', course['linkedCourses'] || "None");
     
     document.body.appendChild(floatBox);
 

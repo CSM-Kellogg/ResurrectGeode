@@ -27,7 +27,8 @@ class savedCourses {
      * @param {Course} course appends a course (in its entirety to the saved courses)
      */
     addCourse(course) {
-        if (this.courseList.some(map => map["class name"] === course['class name'])) {
+        if (this.courseList.includes(course)) {
+        // if (this.courseList.some(map => map["class name"] === course['class name'])) {
             console.log("course already added");
             return;
         }

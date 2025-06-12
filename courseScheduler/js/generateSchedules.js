@@ -48,7 +48,6 @@ class genSchedule {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this
                     const [
                         CRN,              // e.g. '82325'
-                        courseType,       // e.g. 'Lecture'
                         deliveryType,     // e.g. 'Face to Face'
                         sectionCode,      // e.g. 'A'
                         instructorName,

@@ -8,7 +8,8 @@ import { customSectionParser } from "./utils.js";
 // Headers for the refactored catalog
 const HEADERS = [
     "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "linkedCourses", "campus", "sectionListing"
+    "mutual exclusions", "coursedescription", "linkedCourses", "campus",
+    "schedType", "sectionListing"
 ];
 
 class Catalog {
@@ -54,9 +55,10 @@ class Catalog {
             
             // The dictionary for a certain row
             const obj = {};
+            let isLinked = false;
             HEADERS.forEach((key, j) => {
                 let value = row[j];
-                
+
                 if (key === "sectionListing") {
                     // Manual ish parser here
                     // Wasn't able to use regex on this one.
@@ -64,10 +66,18 @@ class Catalog {
                     value = parsed;
                 } else if (key === "linkedCourses") {
                     value = JSON.parse('['+value+']');
+                    // We should probably specify what part of the class this is
+                    // Either that or hide the other half, but what if a student takes them seperately?
+                    if (value.length > 1) isLinked = true;
                 }
 
                 obj[key] = value;
             });
+
+            if (isLinked) {
+                obj['class name'] += ` (${obj['schedType']})`;
+            }
+
             return obj;
         });
 
