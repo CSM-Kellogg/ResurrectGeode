@@ -19,3 +19,9 @@ document.getElementById('open-scheduler').addEventListener('click', () => {
     url: targetURL
   });
 });
+
+// Clears some local storage jus in case :)
+document.getElementById('clearStorageCatalog').addEventListener('click', ()=>{
+  localStorage.removeItem('catalogTmp');
+  console.log('cleared catalogTmp');
+});

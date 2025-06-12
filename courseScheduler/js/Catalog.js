@@ -1,3 +1,5 @@
+import { customSectionParser } from "./utils.js";
+
 /**
 * Mostly by ChatGPT with collaboration from Liam Kellogg and Grey Garner
 * 
@@ -6,7 +8,7 @@
 // Headers for the refactored catalog
 const HEADERS = [
     "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "campus", "sectionListing"
+    "mutual exclusions", "coursedescription", "linkedCourses", "campus", "sectionListing"
 ];
 
 class Catalog {
@@ -32,11 +34,6 @@ class Catalog {
         
         // Parse the text blob
         this.#catalogData = this.#parseCSV(text);
-
-        // Some debug
-        // console.log("Parsed Catalog:", this.#catalogData);
-        // console.log("Parsed Catalog sample:", this.#catalogData[0]);
-        // console.log("Available keys:", Object.keys(this.#catalogData[0]));
     }
     
     // Parses a CSV using PapaParse
@@ -59,37 +56,20 @@ class Catalog {
             const obj = {};
             HEADERS.forEach((key, j) => {
                 let value = row[j];
-
+                
                 if (key === "sectionListing") {
-                    try {
-                        const cleaned = value
-                            .replaceAll(/,\s*]/g, ']')           // fix trailing commas
-                            .replaceAll(/'/g, '"')               // single to double quotes
-                            .replaceAll(/\\"/g, '"')             // double escaped quotes
-                            .replaceAll(/"{2,}/g, '"');          // collapse duplicate quotes
-
-                        const parsed = JSON.parse(cleaned);
-                        if (!Array.isArray(parsed) || !Array.isArray(parsed[0])) {
-                            throw new Error("sectionListing is not array of arrays");
-                        }
-
-                        value = parsed;
-                    } catch (err) {
-                        console.warn("🚫 Failed to parse sectionListing:", value);
-                        value = [];
-                    }
+                    // Manual ish parser here
+                    // Wasn't able to use regex on this one.
+                    const parsed = customSectionParser(value);
+                    value = parsed;
+                } else if (key === "linkedCourses") {
+                    value = JSON.parse('['+value+']');
                 }
 
                 obj[key] = value;
             });
             return obj;
         });
-
-        /**
-         * TODO
-         * Merge same class names and create sections --- DONE
-         * Make a seperate window to view all the sections
-         */
 
         // Discard null rows and return
         return rows.filter(Boolean);

@@ -6,8 +6,8 @@ import csv
 HEADERS = [
     "crn", "campus", "schedule type", "instructional method", "section",
     "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "professor", "professor email",
-    "meetingdays", "meetingrange", "timeofday", "roomnum"
+    "mutual exclusions", "coursedescription", "linkedCourses", "professor",
+    "professor email", "meetingdays", "meetingrange", "timeofday", "roomnum"
 ]
 
 # Read a CSV file and store it in result
@@ -21,13 +21,13 @@ with open('catalog.csv', mode='r', newline='', encoding='utf-8') as file:
 """
 NEW HEADERS:
     "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "campus", "sectionListing"
+    "mutual exclusions", "coursedescription", "linkedCourses", "campus", "sectionListing"
 """
 converted = []
 
 while len(result) > 0:
     tmp_course = result.pop()
-    sections = [[tmp_course[0]] + tmp_course[2:5] + tmp_course[12:]]
+    sections = [[tmp_course[0]] + tmp_course[2:5] + tmp_course[13:]]
 
     # Add sections and pop them off the list
     i = 0
@@ -35,14 +35,14 @@ while len(result) > 0:
         # Check if the course name matches (exact) and the CRN is unique to the course name
         if result[i][7] == tmp_course[7]:
             if result[i][0] not in [j[0] for j in sections]:
-                sections.append([result[i][0]] + result[i][2:5] + result[i][12:]) # Append as a section
+                sections.append([result[i][0]] + result[i][2:5] + result[i][13:]) # Append as a section
             del result[i] # Pop the course from the list
         else: i += 1
     
     # Using insert to reverse the list and preserve the intial ordering
-    converted.insert(0, tmp_course[5:12] + [tmp_course[1]] + [sections])
+    converted.insert(0, tmp_course[5:13] + [tmp_course[1]] + [sections])
 
 # Write out using the GOATed library csv
-f = open("mergedSections.csv", 'w', encoding='utf-8', newline='')
+f = open("refactoredCatalog.csv", 'w', encoding='utf-8', newline='')
 writer = csv.writer(f)
 writer.writerows(converted)

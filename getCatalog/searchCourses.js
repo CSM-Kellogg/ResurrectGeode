@@ -3,12 +3,7 @@
  * Wait lack of semicolons may undo me
  * 
  * TODO:
- * 1. handle timeout and drop in connection (might be impossible due to how we are injecting the script)
- * 2. Co-requisites (also the difference between pre-requisites and Prerequisites and Prerequisite)
- * 3. The classes that didn't load at all
- * 4. Linked Courses (like Chem121) - DONE
- * 5. The PM,PM,PM bug - DONE
- * 6. Replace &amp;amp;amp; with & - DONE
+ * 1. handle timeout and drop in connection
  */
 
 // For the class details page
@@ -17,7 +12,7 @@ CLASS_DEET_SELECT = [
     "Subject", "Course Number", "Title", "Credit Hours"
 ];
 
-DEBUG_MODE = true;
+DEBUG_MODE = false;
 
 // Takes stuff like &amp; out
 function decodeHTML(input) {
@@ -50,12 +45,9 @@ function safeClick(someXPath) {
     button = getElem(someXPath);
     
     if (button) {
-        //button.click();
         button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        //console.log('Button clicked.');
     } else {
-        console.log('Button not found.');
-        alert('awlfkjal;w');
+        console.warn('Button not found.');
     }
 }
 
@@ -100,15 +92,24 @@ async function getClassDetailInfo(gypsum) {
     Abby = await getSectionBody('//*[@id="classDetails"]/a',
         '//section[contains(@aria-labelledby, "classDetails")]');
 
-    bucket = []
-    deets = Abby.querySelectorAll('span');
-    deets.forEach((span) => {
-        if (span.className == "status-bold") {
-            // pass
-        } else {
-            bucket.push(decodeHTML(span.innerHTML));
+    scoop = Abby.textContent.split(/([\n]|:)+/);
+
+    // Trims each element and filters out the delimiters
+    scoop = scoop.map(element => element.trim()).filter(
+        element => element !== '' &&
+        element !== ":"
+    );
+
+    // Need to parse out needed information
+    bucket = [];
+    while (scoop.length > 0) {
+        spoon = scoop.shift();
+
+        // For some input "CRN: 80321", this bit gets the "80321"
+        if (CLASS_DEET_SELECT.includes(spoon)) {
+            bucket.push(scoop.shift());
         }
-    });
+    }
 
     gypsum.push(...bucket);
 }
@@ -152,28 +153,24 @@ async function getMeetingInfo(powder) {
     // Go to instructor meeting times =========================================
     Cathy = await getSectionBody('//h3[@id="facultyMeetingTimes"]/a',
         '//div[@class="meetingTimesContainer"]');
-
-    // Could be void of data (Broken rn, goto CSM MISC COURSE)
-    if (Cathy.textContent.includes("No specified")) {
-        powder.push([null, null, null, null, null, null]);
-        return;
-    } else {
-        console.log(Cathy.textContent);
-    }
     
     // Wait for accordion to load
     let cathyKids;
-    await waitFor(() => {
-        // For each meeting time, the accordion loads a <div> with content
-        // followed by an empty <div>
-        if (Cathy.querySelector('.accordion') == null) {
-                return false;
-        }
-        else {
-            cathyKids = Array.from(Cathy.querySelector('.accordion').children);
+    try {
+            await waitFor(() => {
+            // For each meeting time, the accordion loads a <div> with content
+            // followed by an empty <div>
+            if (Cathy.querySelector('.accordion') == null) {
+                    return false;
+            }
+            cathyKids = Array.from(Cathy.querySelector('.accordion').children);    
             return (cathyKids.length > 1);
-        }
-    });
+        });
+    } catch (e) {
+        // No meeting times were found
+        powder.push([null, null, null, null, null, null]);
+        return;
+    }
 
     // The accordion may have more than one meeting time. (e.g. CRN 80394)
     cathyKids.forEach((element) => {
@@ -336,8 +333,9 @@ async function getPageOfClasses(quartz, pageRowNum) {
             quartz.push(...amethyst);
         } catch (e) {
             console.log(`Was unable to parse class, available data is: ${amethyst}`);
+            console.log(`Class name: ${document.querySelector('table tbody').children[i].children[0].title}`);
             console.error(e);
-            throw new Error("fix dis shit rn okayz?");
+            //throw new Error("fix dis shit rn okayz?");
         }
 
         // Close the window, we are done here
@@ -369,11 +367,35 @@ async function main() {
 
     classCatalog = []; // The catalog for a semester
 
-    // Load from chrome storage, if any is there
+    /**
+     * Storage and retrieval of the catalog in event of a mishap
+     */
 
-    (async () => {
-        // Search all pages
-        pageNum = 1;
+    window.addEventListener('beforeunload', () => {
+        // Gracefully stop your script
+        console.log("Cleaning up before unload...");
+        // Store into local chrome storage.
+        localStorage.setItem('catalogTmp', JSON.stringify(classCatalog));
+    });
+
+    // Load if it exists
+    let pageNum;
+    if (localStorage.getItem('catalogTmp') !== null) {
+        classCatalog = localStorage.getItem('catalogTmp');
+        classCatalog = JSON.parse(classCatalog);
+
+        // Go forward into the catalog
+        pageNum = Math.floor(classCatalog.length / 50);
+        // Go to the required page number
+        foo = document.querySelector('input.page-number.enabled')
+        foo.value = pageNum;
+        foo.dispatchEvent(new Event('input', {bubbles: true}));
+        foo.dispatchEvent(new Event('change', {bubbles: true}));
+    } else {
+        pageNum = 1; // Start from the beginning
+    }
+
+    try { (async () => {
         do {
             // Change the page size to 50
             let elem;
@@ -407,18 +429,12 @@ async function main() {
         }
 
         // Remove from chrome storage
-    })();
+        localStorage.removeItem('catalogTmp');
+    })(); }
+    catch(e) {
+        console.log(e);
+        localStorage.setItem('catalogTmp', classCatalog);
+    }
 }
 
 main();
-
-
-/**
- * Some event listeners to gracefully exit in the event of a 500 error
- */
-
-window.addEventListener('beforeunload', () => {
-    // Gracefully stop your script
-    console.log("Cleaning up before unload...");
-    // Store into local chrome storage.
-});
