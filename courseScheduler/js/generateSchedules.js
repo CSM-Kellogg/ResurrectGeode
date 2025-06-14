@@ -6,20 +6,20 @@ import catalog from "./Catalog.js";
 // The minecraft wool colors btw (new textures)
 let my_colors = {
     "Red Wool": [161, 39, 34],
-    "Orange Wool": [240, 118, 19],
-    "Magenta Wool": [189, 68, 179],
     "Light Blue Wool": [58, 175, 217],
-    "Yellow Wool": [248, 198, 39],
+    "Green Wool": [84, 109, 27],
+    "Orange Wool": [240, 118, 19],
     "Lime Wool": [112, 185, 25],
+    "Magenta Wool": [189, 68, 179],
+    "Blue Wool": [53, 57, 157],
     "Pink Wool": [237, 141, 172],
-    "Gray Wool": [62, 68, 71],
-    "Light Gray Wool": [142, 142, 134],
     "Cyan Wool": [21, 137, 145],
     "Purple Wool": [121, 42, 172],
-    "Blue Wool": [53, 57, 157],
+    "Yellow Wool": [248, 198, 39],
     "Brown Wool": [114, 71, 40],
-    "Green Wool": [84, 109, 27],
     "White Wool": [233, 236, 236],
+    "Light Gray Wool": [142, 142, 134],
+    "Gray Wool": [62, 68, 71],
     "Black Wool": [20, 21, 25]
 };
 
