@@ -9,7 +9,10 @@ export function decodeHTML(html) {
     return txt.value;
 }
 
-
+// A custom parser for some non JSON-ish string. In particular, the sections
+// for a course. Handles escaped characters, double vs. single quotes, commas,
+// and braces.
+// By: Liam Kellogg
 export function customSectionParser(txtbob) {
     let output = [[]];
     let curr_element = "";
@@ -27,7 +30,6 @@ export function customSectionParser(txtbob) {
                 if (inString) {
                     curr_element += '[';
                 }
-                // No need
                 break;
             case ']':
                 if (inString) {

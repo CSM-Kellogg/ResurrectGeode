@@ -1,6 +1,8 @@
 // Another singleton class that generates and saves schedules (also temporarily holds them)
 // By: Liam Kellogg, Grey Garner, and some ChatGPT
 
+import catalog from "./Catalog.js";
+
 // The minecraft wool colors btw (new textures)
 let my_colors = {
     "Red Wool": [161, 39, 34],
@@ -57,6 +59,7 @@ class genSchedule {
                         rawMeetingRange,  // e.g. '08:00 AM - 08:50 AM,AM,AM'
                         room              // e.g. 'Brown Building, Room 269'
                     ] = section;
+                    
                     return {
                         CRN,
                         meetingDays: (rawMeetingDays || '')
@@ -83,8 +86,46 @@ class genSchedule {
                     console.warn("Skipping malformed section:", section);
                     return null;
                 }
-            }).filter(Boolean); // Only filters out non-null returns
+            }).filter(Boolean); // Only filters out non-null values
         });
+
+        // Handle linked sections here and append the sections to all sections
+        selectedCourses.every((course) => {
+            // For each selected course with linked sections, add those sections
+            let m_linkedSections = course['linkedCourses'];
+            if (m_linkedSections[0] != null) {
+                // Assuming the linked sections for any course are the same course
+                let pCourse = catalog.courseFromCRN(m_linkedSections[0]);
+
+                if (allSections.some(c => c.parentCourse == pCourse)) {
+                    console.log("Already added linked course");
+                    return false; // equivalent to break for the .every()
+                }
+
+                allSections.push([]); // Add the linked class
+                let c_index = allSections.length - 1;
+
+                m_linkedSections.forEach((linkedcrn) => {
+                    let sectionIndex = pCourse['sectionListing'].findIndex(section => section[0] == linkedcrn);
+                    if (sectionIndex == -1) { // An error like this should fail silently
+                        console.log(`Course ${course['class name']} has a
+                            linked section with CRN ${linkedcrn} that doesn't exist.`);
+                    } else {
+                        let linkedSection = pCourse['sectionListing'][sectionIndex];
+
+                        allSections[c_index].push({
+                            CRN: linkedcrn,
+                            meetingDays: linkedSection[5],
+                            meetingRange: linkedSection[7],
+                            room: linkedSection[8],
+                            parentCourse: pCourse,
+                        });
+                    }
+                });
+            }
+        });
+
+        console.log(allSections);
 
         // Stores all valid schedules
         const validSchedules = [];

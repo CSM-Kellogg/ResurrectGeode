@@ -1,6 +1,7 @@
 // By: Liam Kellogg
 import { decodeHTML } from "./utils.js";
 import { displayCourseContent } from './coursePopup.js';
+import catalog from "./Catalog.js";
 
 // Is signleton
 class savedCourses {
@@ -28,7 +29,7 @@ class savedCourses {
      */
     addCourse(course) {
         if (this.courseList.includes(course)) {
-        // if (this.courseList.some(map => map["class name"] === course['class name'])) {
+        //if (this.courseList.some(c => c["class name"] === course["class name"])) {
             console.log("course already added");
             return;
         }
@@ -55,6 +56,7 @@ class savedCourses {
             });
         }
     }
+
     loadSavedCourses() {
         chrome.storage.local.get(['savedCourses'], (result) => {
             if (result.savedCourses && Array.isArray(result.savedCourses)) {

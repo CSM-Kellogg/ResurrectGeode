@@ -1,5 +1,10 @@
 '''
 Takes a raw catalog.csv, merges sections, and deletes duplicate CRNS
+
+TODO: Distinguish lecture and distance learning courses either by labelling them correctly
+in the section listing or in the class name
+
+It is possible to do it within the section listing due to the "distance/online" or "face to face" field
 '''
 import csv
 

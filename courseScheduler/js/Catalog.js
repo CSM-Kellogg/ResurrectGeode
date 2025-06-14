@@ -68,7 +68,7 @@ class Catalog {
                     value = JSON.parse('['+value+']');
                     // We should probably specify what part of the class this is
                     // Either that or hide the other half, but what if a student takes them seperately?
-                    if (value.length > 1) isLinked = true;
+                    if (value[0] != null) isLinked = true;
                 }
 
                 obj[key] = value;
@@ -90,9 +90,36 @@ class Catalog {
         const lcKeyword = keyword.toLowerCase();
         
         // keyword by class name for now
-        return this.#catalogData.filter(entry =>
-            entry["class name"]?.toLowerCase().includes(lcKeyword)
+        // Eventually, maintain this sorted list such that it is easier to remove duplicates and it looks nicer
+
+        let result = this.#catalogData.filter(entry => 
+                entry["class name"]?.toLowerCase().includes(lcKeyword)
         );
+
+        // Doesn't check for duplicates - needs a potential fix
+        if (result.length < 4) {
+            result.push(...this.#catalogData.filter(entry => 
+                entry["department"]?.toLowerCase().includes(lcKeyword))
+            );
+        }
+
+        
+
+        return result;
+    }
+
+    // O(n) to find the course corresponding to a CRN
+    courseFromCRN(crn) {
+        let m_course = null;
+        for (let i = 0; i < this.#catalogData.length; i ++) {
+            for (let j = 0; j < this.#catalogData[i]["sectionListing"].length; j ++) {
+                if (crn == parseInt(this.#catalogData[i]["sectionListing"][j][0])) {
+                    return this.#catalogData[i];
+                }
+            }
+        }
+
+        return m_course;
     }
 }
 
