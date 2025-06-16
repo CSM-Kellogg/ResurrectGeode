@@ -29,6 +29,10 @@ class genSchedule {
         genSchedule._instance = this;
         this.savedSchedules = [];
         this.currentIndex = 0;
+        this.unavailableBlocks = []; 
+        this.unavailableBlocks = [];
+        this.breakEditMode = false;
+        this.isDraggingBreak = false;
     }
 
     // Generates a schedule from courses considering all sections
@@ -62,6 +66,8 @@ class genSchedule {
                     
                     return {
                         CRN,
+                        sectionCode,
+                        instructorName,
                         meetingDays: (rawMeetingDays || '')
                             .split(',')
                             .map(day => day.trim().toLowerCase())
@@ -71,8 +77,7 @@ class genSchedule {
                                 wednesday: 'W',
                                 thursday: 'R',
                                 friday: 'F'
-                            }[day] || '')
-                            ).join(''),
+                            }[day] || '')).join(''),
                         meetingRange: (rawMeetingRange || '').split(',')[0].trim(),
                         room,
                         parentCourse: course
@@ -200,9 +205,9 @@ class genSchedule {
     }
 
     // Helper for generate to check for conflicts in a schedule...
-    // Can be O(1) and not O(m) but idc
     hasConflict(schedule) {
         const timeBlocks = [];
+        const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
 
         for (const section of schedule) {
             const days = section.meetingDays;
@@ -212,21 +217,37 @@ class genSchedule {
 
             const [start, end] = timeRange.split(' - ').map(this.parseTime);
 
-            for (const day of days) {
+            for (const dayChar of days) {
+                const day = dayChar;
+                const numericDay = dayMap[day];
+
+                // Check for conflict with other courses
                 for (const block of timeBlocks) {
                     if (
                         block.day === day &&
                         Math.max(start, block.start) < Math.min(end, block.end)
                     ) {
-                        return true; // ❌ Conflict detected
+                        return true; // ❌ Conflict with another course
                     }
                 }
+
+                // Check for conflict with break blocks
+                for (const block of this.unavailableBlocks) {
+                    if (
+                        block.day === numericDay &&
+                        Math.max(start, block.start) < Math.min(end, block.end)
+                    ) {
+                        return true; // ❌ Conflict with break
+                    }
+                }
+
                 timeBlocks.push({ day, start, end });
             }
         }
 
         return false; // ✅ No conflicts
     }
+
 
     // Parses AM/PM time into an integer of minutes from midnight
     parseTime(timeStr) {
@@ -249,6 +270,65 @@ class genSchedule {
         document.querySelectorAll(".schedule-block").forEach(el => el.remove());
         const colorList = Object.entries(my_colors);
         const colorMap = new Map();
+        document.querySelectorAll(".break-block").forEach(el => el.remove());
+            this.unavailableBlocks.forEach(({ day, start, end }) => {
+                const startHour = Math.floor(start / 60);
+                const startMin = start % 60;
+                const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
+                if (!cell) return;
+
+                const duration = end - start;
+                const height = ((duration) / 15) * cell.offsetHeight;
+
+                const block = document.createElement("div");
+                block.className = "break-block";
+                block.style.position = "absolute";
+                block.style.zIndex = "5";
+                block.style.backgroundColor = "rgba(200, 0, 0, 0.3)";
+                block.style.width = "100%";
+                block.style.height = `${height}px`;
+                block.style.top = "0";
+                block.style.left = "0";
+                block.style.pointerEvents = "auto";
+                block.textContent = "Break";
+                block.style.fontSize = "0.7rem";
+                block.style.padding = "2px";
+                cell.style.position = "relative";
+                cell.appendChild(block);
+            });
+
+        this.unavailableBlocks.forEach(block => {
+            const { day, start, end } = block;
+
+            const startHour = Math.floor(start / 60);
+            const startMin = start % 60;
+            const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
+            if (!cell) return;
+
+            const breakDiv = document.createElement("div");
+            breakDiv.className = "schedule-block";
+            breakDiv.style.backgroundColor = "rgba(0,0,0,0.2)";
+            breakDiv.style.position = "absolute";
+            breakDiv.style.zIndex = "5";
+            breakDiv.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
+            breakDiv.style.width = "100%";
+            breakDiv.textContent = "Break";
+            breakDiv.style.fontSize = "0.7rem";
+            breakDiv.style.color = "#333";
+            cell.style.position = "relative";
+            cell.appendChild(breakDiv);
+        });
+
+        let tooltip = document.getElementById("custom-tooltip");
+        if (tooltip) {
+            tooltip.innerHTML = '';
+            tooltip.style.display = "none";
+        } else {
+            tooltip = document.createElement("div");
+            tooltip.id = "custom-tooltip";
+            tooltip.className = "custom-tooltip";
+            document.body.appendChild(tooltip);
+        }
 
         someSchedule.forEach((section, i) => {
             const key = section.parentCourse["class name"];
@@ -294,18 +374,74 @@ class genSchedule {
                 const dayIndex = dayMap[day];
                 if (dayIndex === undefined) continue;
 
-                for (let t = start; t < end; t += 15) {
-                    const hour = Math.floor(t / 60);
-                    const minute = t % 60;
-                    const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${hour}:${minute}"]`);
-                    if (cell) {
-                        const block = document.createElement("div");
-                        block.className = "schedule-block";
-                        block.style.backgroundColor = color;
-                        block.textContent = key;
-                        block.style.fontSize = "0.6rem";
-                        cell.appendChild(block);
-                    }
+                const startHour = Math.floor(start / 60);
+                const startMin = start % 60;
+                const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
+                if (cell) {
+                    const block = document.createElement("div");
+                    const instructor = section.instructorName || "Unknown";
+                    const crn = section.CRN || "Unknown";
+                    const sectionCode = section.sectionCode || "N/A";
+                    const room = section.room || "TBD";
+
+                    block.addEventListener("mouseenter", (e) => {
+                        tooltip.innerHTML = `<strong>${section.parentCourse['class name']}</strong><br>
+                        <strong>Section:</strong> ${sectionCode}<br>
+                        <strong>CRN:</strong> ${crn}<br>
+                        <strong>Instructor:</strong> ${instructor}<br>
+                        <strong>Room:</strong> ${room}`;
+                        tooltip.style.display = "block";
+                    });
+
+                    block.addEventListener("mousemove", (e) => {
+                        const tooltipRect = tooltip.getBoundingClientRect();
+                        const margin = 10;
+
+                        let left = e.clientX + 15;
+                        let top = e.clientY + 15;
+
+                        // If tooltip would go off the right edge
+                        if (left + tooltipRect.width + margin > window.innerWidth) {
+                            left = e.clientX - tooltipRect.width - 15;
+                        }
+
+                        // If tooltip would go off the bottom edge
+                        if (top + tooltipRect.height + margin > window.innerHeight) {
+                            top = e.clientY - tooltipRect.height - 15;
+                        }
+
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.top = `${top}px`;
+                    });
+
+                    block.addEventListener("mouseleave", () => {
+                        tooltip.style.display = "none";
+                    });
+
+                    // Tooltip with class info
+                    block.title = `Section ${sectionCode}
+                    CRN: ${crn}
+                    Instructor: ${instructor}
+                    Room: ${room}`;
+                    block.className = "schedule-block";
+                    block.style.backgroundColor = color;
+                    block.style.position = "absolute";
+                    block.style.zIndex = "10";
+                    block.style.width = "100%";
+                    block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
+                    block.style.top = "0px";
+                    block.style.left = "0px";
+                    block.style.overflow = "hidden";
+                    block.style.padding = "2px";
+                    block.style.cursor = "pointer";
+
+                    block.textContent = key;
+
+                    // Tooltip on hover
+                    block.title = `Section ${section.sectionCode || "?"}\nCRN: ${section.CRN}\nInstructor: ${section.instructorName || "?"}`;
+
+                    cell.style.position = "relative";
+                    cell.appendChild(block);
                 }
             }
         }
@@ -345,6 +481,69 @@ class genSchedule {
             }
         }
     }
+    enableBreakSelection() {
+        let startCell = null;
+
+        const cells = document.querySelectorAll("td.day-slot");
+
+        cells.forEach(cell => {
+            cell.addEventListener("click", () => {
+                if (!this.breakEditMode) return;
+
+                if (!startCell) {
+                    // First click = start
+                    startCell = cell;
+                    cell.classList.add("selected-break-start");
+                    return;
+                }
+
+                // Second click = end
+                const day1 = parseInt(startCell.dataset.day);
+                const day2 = parseInt(cell.dataset.day);
+
+                // Must be same day
+                if (day1 !== day2) {
+                    startCell.classList.remove("selected-break-start");
+                    startCell = null;
+                    return alert("Break must be on the same day.");
+                }
+
+                const [h1, m1] = startCell.dataset.time.split(':').map(Number);
+                const [h2, m2] = cell.dataset.time.split(':').map(Number);
+                const start = Math.min(h1 * 60 + m1, h2 * 60 + m2);
+                const end = Math.max(h1 * 60 + m1, h2 * 60 + m2) + 15; // include clicked cell
+
+                // Prevent duplicates
+                const alreadyExists = this.unavailableBlocks.some(b =>
+                    b.day === day1 && b.start === start && b.end === end
+                );
+                if (!alreadyExists) {
+                    this.unavailableBlocks.push({ day: day1, start, end });
+                }
+
+                // Clear state
+                startCell.classList.remove("selected-break-start");
+                startCell = null;
+
+                this.displaySchedule(this.savedSchedules[this.currentIndex] || []);
+            });
+        });
+
+        // Clear on outside click
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest("td.day-slot") && startCell) {
+                startCell.classList.remove("selected-break-start");
+                startCell = null;
+            }
+        });
+    }
+
+
+
+    addBreakBlock(day, start, end) {
+        this.unavailableBlocks.push({ day, start, end });
+    }
+
 }
 
 // Export the signleton class

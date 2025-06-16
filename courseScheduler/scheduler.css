@@ -131,8 +131,49 @@ table.schedule-table {
 
 .schedule-block {
     background-color: rgba(0, 123, 255, 0.4);
-    height: 100%;
     width: 100%;
+    position: absolute;
+    z-index: 10;
+    font-size: .7rem;           /* Larger text */
+    line-height: 1.2;             /* Good spacing between wrapped lines */
+    padding: 4px;
+    white-space: normal;          /* Allows text wrapping */
+    word-break: break-word;       /* Breaks long words if needed */
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.custom-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: #fefefe;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 7px;
+    font-size: 0.85rem;
+    pointer-events: none;
+    white-space: pre-line;
+    max-width: 250px;
+    display: none;
+}
+
+.selected-break-start {
+    outline: 2px solid red;
+}
+.break-block button {
+    padding: 0;
+    line-height: 1;
+}
+
+.break-block {
+    background-color: rgba(200, 0, 0, 0.3);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none; /* So break blocks don’t block clicks */
 }
 
 #schedule-nav button {

@@ -7,6 +7,7 @@ import genScheduleInstance from './generateSchedules.js';
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
   genSchedule.drawBackground();
+  genSchedule.enableBreakSelection();
 });
 
 //wasn't too sure where to put this, you can move it if you would like:)
@@ -27,6 +28,18 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
     genSchedule.generate(courses);
 });
 
+document.getElementById("toggle-break-mode").addEventListener("click", () => {
+    genSchedule.breakEditMode = !genSchedule.breakEditMode;
+    const btn = document.getElementById("toggle-break-mode");
+    btn.textContent = genSchedule.breakEditMode ? "Disable Break Edit Mode" : "Enable Break Edit Mode";
+    btn.classList.toggle("btn-danger");
+    btn.classList.toggle("btn-success");
+});
+
+document.getElementById("clear-breaks").addEventListener("click", () => {
+    genSchedule.unavailableBlocks = [];
+    genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);
+});
 let intervalId = null;
 let currentDirection = null;
 
