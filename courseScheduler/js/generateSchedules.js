@@ -2,6 +2,8 @@
 // By: Liam Kellogg, Grey Garner, and some ChatGPT
 
 import catalog from "./Catalog.js";
+import { createTooltip } from "./tooltip.js"
+
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -356,6 +358,7 @@ class genSchedule {
                 const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
 
                 if (cell) {
+                    //createTooltip();
                     const block = document.createElement("div");
                     const instructor = section.instructorName || "Unknown";
                     const crn = section.CRN || "Unknown";
@@ -447,16 +450,33 @@ class genSchedule {
     // Where the break sections are... added to the display?
     enableBreakSelection() {
         let startCell = null;
+        let visAid = null;
         
         const cells = document.querySelectorAll("td.day-slot");
-        
+        const daZone = document.querySelector('#right-column');
+
+        // Clears state of the edit mode
+        function clearState() {
+            startCell.classList.remove("selected-break-start");
+            startCell = null;
+            daZone.removeChild(visAid);
+        }
+
         cells.forEach(cell => {
             cell.addEventListener("click", () => {
                 if (!this.breakEditMode) return;
-                
+
                 if (!startCell) {
                     // First click = start
                     startCell = cell;
+                    // The div to act as a visual aid
+                    visAid = document.createElement('div');
+                    visAid.className = 'break-edit-visaid';
+                    visAid.style.top = `${cell.getBoundingClientRect().y}px`;
+                    visAid.style.left = `${cell.getBoundingClientRect().x}px`;
+
+                    daZone.appendChild(visAid);
+
                     cell.classList.add("selected-break-start");
                     return;
                 }
@@ -466,9 +486,11 @@ class genSchedule {
                 const day2 = parseInt(cell.dataset.day);
                 
                 // Must be same day - When this changes to a draggable click get rid of this
+
+                // The change: When multiple days are selected, iterate through
+                // all of them on the code below
                 if (day1 !== day2) {
-                    startCell.classList.remove("selected-break-start");
-                    startCell = null;
+                    clearState();
                     return alert("Break must be on the same day.");
                 }
                 
@@ -486,18 +508,27 @@ class genSchedule {
                 }
                 
                 // Clear state
-                startCell.classList.remove("selected-break-start");
-                startCell = null;
+                clearState();
                 
                 this.displaySchedule(this.savedSchedules[this.currentIndex] || []);
+            });
+
+            // Visual aid
+            cell.addEventListener("mouseover", () => {
+                if (!this.breakEditMode || !startCell) return;
+
+                // Update the selection area accordingly
+                visAid.style.width = `${cell.getBoundingClientRect().x - visAid.getBoundingClientRect().x}px`;
+                visAid.style.height = `${cell.getBoundingClientRect().y - visAid.getBoundingClientRect().y}px`;
+
+                console.log(`${cell.getBoundingClientRect().x - visAid.getBoundingClientRect().x}px`);
             });
         });
         
         // Clear on outside click
         document.addEventListener("click", (e) => {
             if (!e.target.closest("td.day-slot") && startCell) {
-                startCell.classList.remove("selected-break-start");
-                startCell = null;
+                clearState();
             }
         });
     }

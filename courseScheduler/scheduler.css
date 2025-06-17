@@ -187,6 +187,18 @@ table.schedule-table {
     padding: 2px;
 }
 
+.break-edit-visaid {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 0px;
+    height: 0px;
+    z-index: 100;
+    user-select: none;
+    pointer-events: none;
+    background-color: rgba(119, 88, 88, 0.401);
+}
+
 #schedule-nav button {
     width: 2rem;
     padding: 0.25rem 0;
