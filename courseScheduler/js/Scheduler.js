@@ -34,6 +34,7 @@ document.getElementById("toggle-break-mode").addEventListener("click", () => {
     btn.textContent = genSchedule.breakEditMode ? "Disable Break Edit Mode" : "Enable Break Edit Mode";
     btn.classList.toggle("btn-danger");
     btn.classList.toggle("btn-success");
+    btn.classList.toggle("text-light");
 });
 
 document.getElementById("clear-breaks").addEventListener("click", () => {

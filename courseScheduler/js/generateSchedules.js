@@ -283,41 +283,10 @@ class genSchedule {
             
             const block = document.createElement("div");
             block.className = "break-block";
-            block.style.position = "absolute";
-            block.style.zIndex = "5";
-            block.style.backgroundColor = "rgb(159, 114, 75)";
-            block.style.width = "100%";
             block.style.height = `${height}px`;
-            block.style.top = "0";
-            block.style.left = "0";
-            block.style.pointerEvents = "auto";
             block.textContent = "Break";
-            block.style.fontSize = "0.7rem";
-            block.style.padding = "2px";
-            cell.style.position = "relative";
+            
             cell.appendChild(block);
-        });
-        
-        this.unavailableBlocks.forEach(block => {
-            const { day, start, end } = block;
-            
-            const startHour = Math.floor(start / 60);
-            const startMin = start % 60;
-            const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
-            if (!cell) return;
-            
-            const breakDiv = document.createElement("div");
-            breakDiv.className = "schedule-block";
-            breakDiv.style.backgroundColor = "rgba(0,0,0,0.2)";
-            breakDiv.style.position = "absolute";
-            breakDiv.style.zIndex = "5";
-            breakDiv.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
-            breakDiv.style.width = "100%";
-            breakDiv.textContent = "Break";
-            breakDiv.style.fontSize = "0.7rem";
-            breakDiv.style.color = "#333";
-            cell.style.position = "relative";
-            //cell.appendChild(breakDiv);
         });
         
         // Tooltip to view the class details
@@ -496,7 +465,7 @@ class genSchedule {
                 const day1 = parseInt(startCell.dataset.day);
                 const day2 = parseInt(cell.dataset.day);
                 
-                // Must be same day
+                // Must be same day - When this changes to a draggable click get rid of this
                 if (day1 !== day2) {
                     startCell.classList.remove("selected-break-start");
                     startCell = null;

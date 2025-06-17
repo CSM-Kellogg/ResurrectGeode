@@ -163,21 +163,28 @@ table.schedule-table {
     display: none;
 }
 
+/* Break button and blocks */
+
 .selected-break-start {
     outline: 2px solid red;
 }
-.break-block button {
+
+/* .break-block button {
     padding: 0;
     line-height: 1;
-}
+} */
 
 .break-block {
-    background-color: rgba(200, 0, 0, 0.3);
+    background-color: rgb(159, 114, 75);
     position: absolute;
+    top: 0px;
+    left: 0px;
     width: 100%;
     height: 100%;
     z-index: 5;
     pointer-events: none; /* So break blocks don’t block clicks */
+    font-size: 0.7rem;
+    padding: 2px;
 }
 
 #schedule-nav button {
@@ -189,6 +196,7 @@ table.schedule-table {
 #schedule-counter {
     text-align: center;
 }
+
 /* ============================================================
 popup using interactJS, ty ChatGPT
 ============================================================ */ 
