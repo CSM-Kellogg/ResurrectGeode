@@ -37,7 +37,11 @@ interact('.resize-drag')
             x += event.deltaRect.left;
             y += event.deltaRect.top;
             
+            //if (Math.abs(clientX0 - event.rect.right) > 10) {
             target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+
+            // target.setAttribute('data-x', x);
+            // target.setAttribute('data-y', y);
         }
     },
     modifiers: [

@@ -5,22 +5,22 @@ import catalog from "./Catalog.js";
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
-    "Red Wool": [161, 39, 34],
-    "Light Blue Wool": [58, 175, 217],
-    "Green Wool": [84, 109, 27],
-    "Orange Wool": [240, 118, 19],
-    "Lime Wool": [112, 185, 25],
-    "Magenta Wool": [189, 68, 179],
-    "Blue Wool": [53, 57, 157],
-    "Pink Wool": [237, 141, 172],
-    "Cyan Wool": [21, 137, 145],
-    "Purple Wool": [121, 42, 172],
-    "Yellow Wool": [248, 198, 39],
-    "Brown Wool": [114, 71, 40],
-    "White Wool": [233, 236, 236],
-    "Light Gray Wool": [142, 142, 134],
-    "Gray Wool": [62, 68, 71],
-    "Black Wool": [20, 21, 25]
+    "Red Wool": [181, 71, 66],
+    "Light Blue Wool": [86, 191, 217],
+    "Green Wool": [110, 125, 73],
+    "Orange Wool": [243, 139, 63],
+    "Lime Wool": [134, 199, 69],
+    "Magenta Wool": [201, 92, 191],
+    "Blue Wool": [77, 82, 174],
+    "Pink Wool": [240, 157, 184],
+    "Cyan Wool": [49, 157, 161],
+    "Purple Wool": [138, 74, 188],
+    "Yellow Wool": [249, 214, 87],
+    "Brown Wool": [137, 97, 72],
+    "White Wool": [237, 238, 238],
+    "Light Gray Wool": [158, 158, 152],
+    "Gray Wool": [88, 95, 99],
+    "Black Wool": [61, 63, 69]
 };
 
 class genSchedule {
@@ -34,7 +34,7 @@ class genSchedule {
         this.breakEditMode = false;
         this.isDraggingBreak = false;
     }
-
+    
     // Generates a schedule from courses considering all sections
     generate(selectedCourses) {
         const allSections = selectedCourses.map(course => {
@@ -47,23 +47,28 @@ class genSchedule {
                 console.log("SectionListing type:", typeof course.sectionListing, Array.isArray(course.sectionListing));
                 return [];
             }
-
+            
             // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
                 if (Array.isArray(section)) {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this
-                    const [
+                    let [
                         CRN,              // e.g. '82325'
                         deliveryType,     // e.g. 'Face to Face'
                         sectionCode,      // e.g. 'A'
                         instructorName,
                         instructorEmail,
-                        rawMeetingDays,   // e.g. 'Monday,Wednesday,Friday'
+                        rawMeetingDays,   // e.g. 'Monday,Wednesday,Friday' OR 'Monday'
                         rawDates,         // e.g. '08/25/2025,12/19/2025'
                         rawMeetingRange,  // e.g. '08:00 AM - 08:50 AM,AM,AM'
                         room              // e.g. 'Brown Building, Room 269'
                     ] = section;
                     
+                    if (!rawMeetingDays.includes(',')) {
+                        rawMeetingDays += ',';
+                    }
+                    console.log(rawMeetingDays);
+
                     return {
                         CRN,
                         sectionCode,
@@ -109,15 +114,14 @@ class genSchedule {
 
                 allSections.push([]); // Add the linked class
                 let c_index = allSections.length - 1;
-
+                
                 m_linkedSections.forEach((linkedcrn) => {
                     let sectionIndex = pCourse['sectionListing'].findIndex(section => section[0] == linkedcrn);
                     if (sectionIndex == -1) { // An error like this should fail silently
-                        console.log(`Course ${course['class name']} has a
-                            linked section with CRN ${linkedcrn} that doesn't exist.`);
+                        console.log(`Course ${course['class name']} has a linked section with CRN ${linkedcrn} that doesn't exist.`);
                     } else {
                         let linkedSection = pCourse['sectionListing'][sectionIndex];
-
+                        
                         allSections[c_index].push({
                             CRN: linkedcrn,
                             meetingDays: linkedSection[5],
@@ -128,81 +132,82 @@ class genSchedule {
                     }
                 });
             }
-        });
-
-        console.log(allSections);
-
-        // Stores all valid schedules
-        const validSchedules = [];
-
-        // Recursion through a lambda expression...
-        // Could be a good standard to have.
-        const recurse = (depth, currentSchedule) => {
-            if (depth === allSections.length) { // If we have gone through all sections
-                if (!this.hasConflict(currentSchedule)) { // And no conflict
-                    validSchedules.push([...currentSchedule]); // Append to valid schedules
-                }
-                return;
+        }
+    );
+    
+    //console.log(allSections);
+    
+    // Stores all valid schedules
+    const validSchedules = [];
+    
+    // Recursion through a lambda expression...
+    // Could be a good standard to have.
+    const recurse = (depth, currentSchedule) => {
+        if (depth === allSections.length) { // If we have gone through all sections
+            if (!this.hasConflict(currentSchedule)) { // And no conflict
+                validSchedules.push([...currentSchedule]); // Append to valid schedules
             }
+            return;
+        }
+        
+        // Build the current schedule from all sections
+        for (const section of allSections[depth]) {
+            currentSchedule.push(section);
+            recurse(depth + 1, currentSchedule);
+            currentSchedule.pop();
+        }
+    };
+    
+    recurse(0, []); // Start recursion on empty schedule
+    // console.log(`Generated ${validSchedules.length} valid schedules`);
+    
+    
+    // Display schedules
+    this.savedSchedules = validSchedules;
+    this.currentIndex = 0;
+    
+    this.displaySchedule(validSchedules[0]);
+    this.updateCounter();
+}
 
-            // Build the current schedule from all sections
-            for (const section of allSections[depth]) {
-                currentSchedule.push(section);
-                recurse(depth + 1, currentSchedule);
-                currentSchedule.pop();
-            }
-        };
+// Next and previous button logic for iterating through available schedules
+nextSchedule() {
+    if (this.savedSchedules.length === 0) return;
+    this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
+    this.displaySchedule(this.savedSchedules[this.currentIndex]);
+    this.updateCounter();
+}
 
-        recurse(0, []); // Start recursion on empty schedule
-        // console.log(`Generated ${validSchedules.length} valid schedules`);
+prevSchedule() {
+    if (this.savedSchedules.length === 0) return;
+    this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
+    this.displaySchedule(this.savedSchedules[this.currentIndex]);
+    this.updateCounter();
+}
 
+// Updates the HTML on the selected schedule as well as the total number of
+// possible schedules
+updateCounter() {
+    const counter = document.getElementById("schedule-counter");
+    const prevBtn = document.getElementById("prev-schedule");
+    const nextBtn = document.getElementById("next-schedule");
+    
+    const total = this.savedSchedules.length;
+    const index = this.currentIndex + 1;
+    
+    if (counter) counter.textContent = `${index} / ${total}`;
+    
+    const shouldDisable = total <= 1;
+    if (prevBtn) prevBtn.disabled = shouldDisable;
+    if (nextBtn) nextBtn.disabled = shouldDisable;
+}
 
-        // Display schedules
-        this.savedSchedules = validSchedules;
-        this.currentIndex = 0;
+// Save a course as its CRNs so that the user can come back to it later
+saveCourse(CRNList) {}
 
-        this.displaySchedule(validSchedules[0]);
-        this.updateCounter();
-    }
-
-    // Next and previous button logic for iterating through available schedules
-    nextSchedule() {
-        if (this.savedSchedules.length === 0) return;
-        this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
-        this.displaySchedule(this.savedSchedules[this.currentIndex]);
-        this.updateCounter();
-    }
-
-    prevSchedule() {
-        if (this.savedSchedules.length === 0) return;
-        this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
-        this.displaySchedule(this.savedSchedules[this.currentIndex]);
-        this.updateCounter();
-    }
-
-    // Updates the HTML on the selected schedule as well as the total number of
-    // possible schedules
-    updateCounter() {
-        const counter = document.getElementById("schedule-counter");
-        const prevBtn = document.getElementById("prev-schedule");
-        const nextBtn = document.getElementById("next-schedule");
-
-        const total = this.savedSchedules.length;
-        const index = this.currentIndex + 1;
-
-        if (counter) counter.textContent = `${index} / ${total}`;
-
-        const shouldDisable = total <= 1;
-        if (prevBtn) prevBtn.disabled = shouldDisable;
-        if (nextBtn) nextBtn.disabled = shouldDisable;
-    }
-
-    // Save a course as its CRNs so that the user can come back to it later
-    saveCourse(CRNList) {}
-
-    removeSavedCourse(index) {
-        this.savedSchedules.splice(index, 1);
-    }
+removeSavedCourse(index) {
+    this.savedSchedules.splice(index, 1);
+}
 
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
@@ -249,20 +254,24 @@ class genSchedule {
     }
 
 
-    // Parses AM/PM time into an integer of minutes from midnight
-    parseTime(timeStr) {
-        const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
-        const parts = cleaned.split(' ');
-        if (parts.length < 2) return null; // malformed
-
-        const [time, modifier] = parts;
-        let [hour, minute] = time.split(':').map(Number);
-
-        if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12;
-        if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
-
-        return hour * 60 + minute;
-    }
+/**
+* Parses AM/PM time into an integer of minutes from midnight
+* @param {string} timeStr 
+* @returns An integer -- minutes from midnight 
+*/
+parseTime(timeStr) {
+    const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
+    const parts = cleaned.split(' ');
+    if (parts.length < 2) return null; // malformed
+    
+    const [time, modifier] = parts;
+    let [hour, minute] = time.split(':').map(Number);
+    
+    if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+    if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
+    
+    return hour * 60 + minute;
+}
 
     // Displays the schedule -- needs some work.
     displaySchedule(someSchedule) {

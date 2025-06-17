@@ -60,20 +60,19 @@ class Catalog {
                 let value = row[j];
 
                 if (key === "sectionListing") {
-                    // Manual ish parser here
-                    // Wasn't able to use regex on this one.
+                    // Manual ish parser here. Wasn't able to use regex on this one.
                     const parsed = customSectionParser(value);
                     value = parsed;
                 } else if (key === "linkedCourses") {
                     value = JSON.parse('['+value+']');
-                    // We should probably specify what part of the class this is
-                    // Either that or hide the other half, but what if a student takes them seperately?
+                    // Boolean for later
                     if (value[0] != null) isLinked = true;
                 }
 
                 obj[key] = value;
             });
 
+            // Distinguish between linked classes in class name
             if (isLinked) {
                 obj['class name'] += ` (${obj['schedType']})`;
             }
@@ -108,7 +107,11 @@ class Catalog {
         return result;
     }
 
-    // O(n) to find the course corresponding to a CRN
+    /**
+     * O(n) time to find the course corresponding to a CRN
+     * @param {int} crn  some CRN for a class
+     * @returns The course object or null if not found
+     */
     courseFromCRN(crn) {
         let m_course = null;
         for (let i = 0; i < this.#catalogData.length; i ++) {
@@ -123,5 +126,6 @@ class Catalog {
     }
 }
 
+// Create the singleton
 const CatalogInstance = new Catalog();
 export default CatalogInstance;

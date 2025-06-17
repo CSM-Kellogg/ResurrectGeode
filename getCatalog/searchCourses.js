@@ -4,6 +4,7 @@
  * 
  * TODO:
  * 1. handle timeout and drop in connection
+ * 2. We should have 1988 CRNs by the time main.py is finished, but we do not. Find out why
  */
 
 // For the class details page

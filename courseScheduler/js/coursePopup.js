@@ -73,6 +73,7 @@ export function displayCourseContent(course) {
     // Helper function for adding information to the floatBox
     const addInfo = (label, content) => {
         const container = document.createElement('p');
+        container.className = 'm-1';
         container.innerHTML = `<strong>${label}:</strong> ${content}`;
         infoArea.appendChild(container);
     };
@@ -82,12 +83,12 @@ export function displayCourseContent(course) {
     infoArea.appendChild(title);
 
     // Content of course
-    addInfo('Campus & Credits', `${course['campus']}<br/><strong>Credits:</strong> ${course['credits']}`);
-    addInfo('Prerequisites', course['pre-reqs'] || "No pre-requisites");
+    addInfo('Campus', course['campus']);
+    addInfo('Credits', course['credits']);
+    if (course['pre-reqs'] != 'null') addInfo('Prerequisites', course['pre-reqs']);
+    else addInfo('Pre-requisites', "No Pre-requisites");
     if (course['mutual-exclusions']) addInfo('Mutual Exclusions', course['mutual exclusions']);
     addInfo('Course Description', course['coursedescription'] || "No course description");
-
-    addInfo('Linked courses (TMP)', course['linkedCourses'] || "None");
     
     document.body.appendChild(floatBox);
 

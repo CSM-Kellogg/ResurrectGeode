@@ -35,10 +35,14 @@ while len(result) > 0:
     tmp_course = result.pop()
     sections = [[tmp_course[0]] + tmp_course[3:5] + tmp_course[13:]]
 
+    # Mark online classes as online
+    if (tmp_course[2] in ["Distance Courses"]):
+        tmp_course[7] = f"{tmp_course[7]} [ONLINE]"
+
     # Add sections and pop them off the list
     i = 0
     while i < len(result):
-        # Check if the course name and type of teaching (lecture/lab) matches (exact) and the CRN is unique to the course name
+        # Check if the course name and type of teaching (lecture/lab/online) matches (exact) and the CRN is unique to the course name
         if result[i][7] == tmp_course[7] and result[i][2] == tmp_course[2]:
             if result[i][0] not in [j[0] for j in sections]:
                 sections.append([result[i][0]] + result[i][3:5] + result[i][13:]) # Append as a section
