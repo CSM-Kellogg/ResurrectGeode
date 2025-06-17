@@ -67,22 +67,22 @@ class genSchedule {
                     if (!rawMeetingDays.includes(',')) {
                         rawMeetingDays += ',';
                     }
-                    console.log(rawMeetingDays);
-
+                    //console.log(rawMeetingDays);
+                    
                     return {
                         CRN,
                         sectionCode,
                         instructorName,
                         meetingDays: (rawMeetingDays || '')
-                            .split(',')
-                            .map(day => day.trim().toLowerCase())
-                            .map(day => ({
-                                monday: 'M',
-                                tuesday: 'T',
-                                wednesday: 'W',
-                                thursday: 'R',
-                                friday: 'F'
-                            }[day] || '')).join(''),
+                        .split(',')
+                        .map(day => day.trim().toLowerCase())
+                        .map(day => ({
+                            monday: 'M',
+                            tuesday: 'T',
+                            wednesday: 'W',
+                            thursday: 'R',
+                            friday: 'F'
+                        }[day] || '')).join(''),
                         meetingRange: (rawMeetingRange || '').split(',')[0].trim(),
                         room,
                         parentCourse: course
@@ -98,20 +98,20 @@ class genSchedule {
                 }
             }).filter(Boolean); // Only filters out non-null values
         });
-
+        
         // Handle linked sections here and append the sections to all sections
-        selectedCourses.every((course) => {
+        selectedCourses.forEach((course) => {
             // For each selected course with linked sections, add those sections
             let m_linkedSections = course['linkedCourses'];
             if (m_linkedSections[0] != null) {
                 // Assuming the linked sections for any course are the same course
                 let pCourse = catalog.courseFromCRN(m_linkedSections[0]);
-
+                
                 if (allSections.some(c => c.parentCourse == pCourse)) {
                     console.log("Already added linked course");
-                    return false; // equivalent to break for the .every()
+                    return; // equivalent to continue
                 }
-
+                
                 allSections.push([]); // Add the linked class
                 let c_index = allSections.length - 1;
                 
@@ -132,100 +132,90 @@ class genSchedule {
                     }
                 });
             }
-        }
-    );
-    
-    //console.log(allSections);
-    
-    // Stores all valid schedules
-    const validSchedules = [];
-    
-    // Recursion through a lambda expression...
-    // Could be a good standard to have.
-    const recurse = (depth, currentSchedule) => {
-        if (depth === allSections.length) { // If we have gone through all sections
-            if (!this.hasConflict(currentSchedule)) { // And no conflict
-                validSchedules.push([...currentSchedule]); // Append to valid schedules
-            }
-            return;
-        }
+        });
         
-        // Build the current schedule from all sections
-        for (const section of allSections[depth]) {
-            currentSchedule.push(section);
-            recurse(depth + 1, currentSchedule);
-            currentSchedule.pop();
-        }
-    };
+        //console.log(allSections);
+        
+        // Stores all valid schedules
+        const validSchedules = [];
+        
+        // Recursion through a lambda expression...
+        // Could be a good standard to have.
+        const recurse = (depth, currentSchedule) => {
+            if (depth === allSections.length) { // If we have gone through all sections
+                if (!this.hasConflict(currentSchedule)) { // And no conflict
+                    validSchedules.push([...currentSchedule]); // Append to valid schedules
+                }
+                return;
+            }
+            
+            // Build the current schedule from all sections
+            for (const section of allSections[depth]) {
+                currentSchedule.push(section);
+                recurse(depth + 1, currentSchedule);
+                currentSchedule.pop();
+            }
+        };
+        
+        recurse(0, []); // Start recursion on empty schedule
+        
+        // Display schedules
+        this.savedSchedules = validSchedules;
+        this.currentIndex = 0;
+        
+        this.displaySchedule(validSchedules[0]);
+        this.updateCounter();
+    }
     
-    recurse(0, []); // Start recursion on empty schedule
-    // console.log(`Generated ${validSchedules.length} valid schedules`);
+    // Next and previous button logic for iterating through available schedules
+    nextSchedule() {
+        if (this.savedSchedules.length === 0) return;
+        this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+        this.updateCounter();
+    }
     
+    prevSchedule() {
+        if (this.savedSchedules.length === 0) return;
+        this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+        this.updateCounter();
+    }
     
-    // Display schedules
-    this.savedSchedules = validSchedules;
-    this.currentIndex = 0;
+    // Updates the HTML on the selected schedule as well as the total number of
+    // possible schedules
+    updateCounter() {
+        const counter = document.getElementById("schedule-counter");
+        const prevBtn = document.getElementById("prev-schedule");
+        const nextBtn = document.getElementById("next-schedule");
+        
+        const total = this.savedSchedules.length;
+        const index = this.currentIndex + 1;
+        
+        if (counter) counter.textContent = `${index} / ${total}`;
+        
+        const shouldDisable = total <= 1;
+        if (prevBtn) prevBtn.disabled = shouldDisable;
+        if (nextBtn) nextBtn.disabled = shouldDisable;
+    }
     
-    this.displaySchedule(validSchedules[0]);
-    this.updateCounter();
-}
-
-// Next and previous button logic for iterating through available schedules
-nextSchedule() {
-    if (this.savedSchedules.length === 0) return;
-    this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
-    this.displaySchedule(this.savedSchedules[this.currentIndex]);
-    this.updateCounter();
-}
-
-prevSchedule() {
-    if (this.savedSchedules.length === 0) return;
-    this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
-    this.displaySchedule(this.savedSchedules[this.currentIndex]);
-    this.updateCounter();
-}
-
-// Updates the HTML on the selected schedule as well as the total number of
-// possible schedules
-updateCounter() {
-    const counter = document.getElementById("schedule-counter");
-    const prevBtn = document.getElementById("prev-schedule");
-    const nextBtn = document.getElementById("next-schedule");
-    
-    const total = this.savedSchedules.length;
-    const index = this.currentIndex + 1;
-    
-    if (counter) counter.textContent = `${index} / ${total}`;
-    
-    const shouldDisable = total <= 1;
-    if (prevBtn) prevBtn.disabled = shouldDisable;
-    if (nextBtn) nextBtn.disabled = shouldDisable;
-}
-
-// Save a course as its CRNs so that the user can come back to it later
-saveCourse(CRNList) {}
-
-removeSavedCourse(index) {
-    this.savedSchedules.splice(index, 1);
-}
-
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
         const timeBlocks = [];
         const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
-
+        
         for (const section of schedule) {
             const days = section.meetingDays;
             const timeRange = section.meetingRange;
-
+            
             if (!days || !timeRange || !timeRange.includes(" - ")) continue;
-
+            
             const [start, end] = timeRange.split(' - ').map(this.parseTime);
-
+            
             for (const dayChar of days) {
                 const day = dayChar;
                 const numericDay = dayMap[day];
-
+                
                 // Check for conflict with other courses
                 for (const block of timeBlocks) {
                     if (
@@ -235,7 +225,7 @@ removeSavedCourse(index) {
                         return true; // ❌ Conflict with another course
                     }
                 }
-
+                
                 // Check for conflict with break blocks
                 for (const block of this.unavailableBlocks) {
                     if (
@@ -245,75 +235,77 @@ removeSavedCourse(index) {
                         return true; // ❌ Conflict with break
                     }
                 }
-
+                
                 timeBlocks.push({ day, start, end });
             }
         }
-
+        
         return false; // ✅ No conflicts
     }
-
-
-/**
-* Parses AM/PM time into an integer of minutes from midnight
-* @param {string} timeStr 
-* @returns An integer -- minutes from midnight 
-*/
-parseTime(timeStr) {
-    const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
-    const parts = cleaned.split(' ');
-    if (parts.length < 2) return null; // malformed
     
-    const [time, modifier] = parts;
-    let [hour, minute] = time.split(':').map(Number);
     
-    if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12;
-    if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
+    /**
+    * Parses AM/PM time into an integer of minutes from midnight
+    * @param {string} timeStr 
+    * @returns An integer -- minutes from midnight 
+    */
+    parseTime(timeStr) {
+        const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
+        const parts = cleaned.split(' ');
+        if (parts.length < 2) return null; // malformed
+        
+        const [time, modifier] = parts;
+        let [hour, minute] = time.split(':').map(Number);
+        
+        if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+        if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
+        
+        return hour * 60 + minute;
+    }
     
-    return hour * 60 + minute;
-}
-
     // Displays the schedule -- needs some work.
     displaySchedule(someSchedule) {
         const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
         document.querySelectorAll(".schedule-block").forEach(el => el.remove());
         const colorList = Object.entries(my_colors);
         const colorMap = new Map();
+        
+        // Creates breaks between classes
         document.querySelectorAll(".break-block").forEach(el => el.remove());
-            this.unavailableBlocks.forEach(({ day, start, end }) => {
-                const startHour = Math.floor(start / 60);
-                const startMin = start % 60;
-                const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
-                if (!cell) return;
-
-                const duration = end - start;
-                const height = ((duration) / 15) * cell.offsetHeight;
-
-                const block = document.createElement("div");
-                block.className = "break-block";
-                block.style.position = "absolute";
-                block.style.zIndex = "5";
-                block.style.backgroundColor = "rgba(200, 0, 0, 0.3)";
-                block.style.width = "100%";
-                block.style.height = `${height}px`;
-                block.style.top = "0";
-                block.style.left = "0";
-                block.style.pointerEvents = "auto";
-                block.textContent = "Break";
-                block.style.fontSize = "0.7rem";
-                block.style.padding = "2px";
-                cell.style.position = "relative";
-                cell.appendChild(block);
-            });
-
-        this.unavailableBlocks.forEach(block => {
-            const { day, start, end } = block;
-
+        this.unavailableBlocks.forEach(({ day, start, end }) => {
             const startHour = Math.floor(start / 60);
             const startMin = start % 60;
             const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
             if (!cell) return;
-
+            
+            const duration = end - start;
+            const height = ((duration) / 15) * cell.offsetHeight;
+            
+            const block = document.createElement("div");
+            block.className = "break-block";
+            block.style.position = "absolute";
+            block.style.zIndex = "5";
+            block.style.backgroundColor = "rgb(159, 114, 75)";
+            block.style.width = "100%";
+            block.style.height = `${height}px`;
+            block.style.top = "0";
+            block.style.left = "0";
+            block.style.pointerEvents = "auto";
+            block.textContent = "Break";
+            block.style.fontSize = "0.7rem";
+            block.style.padding = "2px";
+            cell.style.position = "relative";
+            cell.appendChild(block);
+        });
+        
+        this.unavailableBlocks.forEach(block => {
+            const { day, start, end } = block;
+            
+            const startHour = Math.floor(start / 60);
+            const startMin = start % 60;
+            const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
+            if (!cell) return;
+            
             const breakDiv = document.createElement("div");
             breakDiv.className = "schedule-block";
             breakDiv.style.backgroundColor = "rgba(0,0,0,0.2)";
@@ -325,9 +317,10 @@ parseTime(timeStr) {
             breakDiv.style.fontSize = "0.7rem";
             breakDiv.style.color = "#333";
             cell.style.position = "relative";
-            cell.appendChild(breakDiv);
+            //cell.appendChild(breakDiv);
         });
-
+        
+        // Tooltip to view the class details
         let tooltip = document.getElementById("custom-tooltip");
         if (tooltip) {
             tooltip.innerHTML = '';
@@ -338,7 +331,7 @@ parseTime(timeStr) {
             tooltip.className = "custom-tooltip";
             document.body.appendChild(tooltip);
         }
-
+        
         someSchedule.forEach((section, i) => {
             const key = section.parentCourse["class name"];
             if (!colorMap.has(key)) {
@@ -346,43 +339,46 @@ parseTime(timeStr) {
                 colorMap.set(key, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.8)`);
             }
         });
+        
         for (const section of someSchedule) {
+            // Some debug for invalud sections
             if (!someSchedule || someSchedule.length === 0) {
                 console.warn("⚠️ Skipped empty schedule:", someSchedule);
-                }
+            }
             if (
                 !section.meetingRange ||
                 typeof section.meetingRange !== "string" ||
                 !section.meetingRange.includes(" - ")
-                ) {
+            ) {
                 console.warn("❌ Skipped: Invalid meetingRange:", section);
                 continue;
-                }
-
-                if (
+            }
+            
+            if (
                 !section.meetingDays ||
                 typeof section.meetingDays !== "string" ||
                 !section.meetingDays.match(/[MTWRF]/)
-                ) {
+            ) {
                 console.warn("❌ Skipped: Invalid meetingDays:", section);
                 continue;
-                }
+            }
+            
             const key = section.parentCourse["class name"];
             const color = colorMap.get(key);
-
+            
             if (!section.meetingRange || typeof section.meetingRange !== 'string' || !section.meetingRange.includes(' - ')) {
                 console.warn("Invalid or missing meetingRange:", section);
                 continue;
             }
-
+            
             const [startStr, endStr] = section.meetingRange.split(' - ');
             const start = this.parseTime(startStr);
             const end = this.parseTime(endStr);
-
+            
             for (const day of section.meetingDays) {
                 const dayIndex = dayMap[day];
                 if (dayIndex === undefined) continue;
-
+                
                 const startHour = Math.floor(start / 60);
                 const startMin = start % 60;
                 const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
@@ -392,41 +388,41 @@ parseTime(timeStr) {
                     const crn = section.CRN || "Unknown";
                     const sectionCode = section.sectionCode || "N/A";
                     const room = section.room || "TBD";
-
+                    
                     block.addEventListener("mouseenter", (e) => {
-                        tooltip.innerHTML = `<strong>${section.parentCourse['class name']}</strong><br>
-                        <strong>Section:</strong> ${sectionCode}<br>
-                        <strong>CRN:</strong> ${crn}<br>
-                        <strong>Instructor:</strong> ${instructor}<br>
+                        tooltip.innerHTML = `<strong class="mb-1">${section.parentCourse['class name']}</strong>
+                        <strong>Section:</strong> ${sectionCode}
+                        <strong>CRN:</strong> ${crn}
+                        <strong>Instructor:</strong> ${instructor}
                         <strong>Room:</strong> ${room}`;
                         tooltip.style.display = "block";
                     });
-
+                    
                     block.addEventListener("mousemove", (e) => {
                         const tooltipRect = tooltip.getBoundingClientRect();
                         const margin = 10;
-
+                        
                         let left = e.clientX + 15;
                         let top = e.clientY + 15;
-
+                        
                         // If tooltip would go off the right edge
                         if (left + tooltipRect.width + margin > window.innerWidth) {
                             left = e.clientX - tooltipRect.width - 15;
                         }
-
+                        
                         // If tooltip would go off the bottom edge
                         if (top + tooltipRect.height + margin > window.innerHeight) {
                             top = e.clientY - tooltipRect.height - 15;
                         }
-
+                        
                         tooltip.style.left = `${left}px`;
                         tooltip.style.top = `${top}px`;
                     });
-
+                    
                     block.addEventListener("mouseleave", () => {
                         tooltip.style.display = "none";
                     });
-
+                    
                     // Tooltip with class info
                     block.title = `Section ${sectionCode}
                     CRN: ${crn}
@@ -443,33 +439,33 @@ parseTime(timeStr) {
                     block.style.overflow = "hidden";
                     block.style.padding = "2px";
                     block.style.cursor = "pointer";
-
+                    
                     block.textContent = key;
-
+                    
                     // Tooltip on hover
                     block.title = `Section ${section.sectionCode || "?"}\nCRN: ${section.CRN}\nInstructor: ${section.instructorName || "?"}`;
-
+                    
                     cell.style.position = "relative";
                     cell.appendChild(block);
                 }
             }
         }
     }
-
+    
     // Draws the background of the schedule as a table
     drawBackground() {
         const scheduleBody = document.getElementById("scheduleBody");
-
+        
         function formatTime(h, m) {
             const hour = h % 12 === 0 ? 12 : h % 12;
             const suffix = h < 12 ? "AM" : "PM";
             return `${hour}:${m.toString().padStart(2, "0")} ${suffix}`;
         }
-
+        
         for (let h = 6; h < 22; h++) {
             for (let m of [0, 15, 30, 45]) {
                 const row = document.createElement("tr");
-
+                
                 if (m % 30 === 0) {
                     const timeCell = document.createElement("td");
                     timeCell.className = "time-cell";
@@ -477,7 +473,7 @@ parseTime(timeStr) {
                     timeCell.rowSpan = 2;
                     row.appendChild(timeCell);
                 }
-
+                
                 for (let d = 0; d < 5; d++) {
                     const cell = document.createElement("td");
                     cell.className = "day-slot";
@@ -485,43 +481,43 @@ parseTime(timeStr) {
                     cell.dataset.time = `${h}:${m}`;
                     row.appendChild(cell);
                 }
-
+                
                 scheduleBody.appendChild(row);
             }
         }
     }
     enableBreakSelection() {
         let startCell = null;
-
+        
         const cells = document.querySelectorAll("td.day-slot");
-
+        
         cells.forEach(cell => {
             cell.addEventListener("click", () => {
                 if (!this.breakEditMode) return;
-
+                
                 if (!startCell) {
                     // First click = start
                     startCell = cell;
                     cell.classList.add("selected-break-start");
                     return;
                 }
-
+                
                 // Second click = end
                 const day1 = parseInt(startCell.dataset.day);
                 const day2 = parseInt(cell.dataset.day);
-
+                
                 // Must be same day
                 if (day1 !== day2) {
                     startCell.classList.remove("selected-break-start");
                     startCell = null;
                     return alert("Break must be on the same day.");
                 }
-
+                
                 const [h1, m1] = startCell.dataset.time.split(':').map(Number);
                 const [h2, m2] = cell.dataset.time.split(':').map(Number);
                 const start = Math.min(h1 * 60 + m1, h2 * 60 + m2);
                 const end = Math.max(h1 * 60 + m1, h2 * 60 + m2) + 15; // include clicked cell
-
+                
                 // Prevent duplicates
                 const alreadyExists = this.unavailableBlocks.some(b =>
                     b.day === day1 && b.start === start && b.end === end
@@ -529,15 +525,15 @@ parseTime(timeStr) {
                 if (!alreadyExists) {
                     this.unavailableBlocks.push({ day: day1, start, end });
                 }
-
+                
                 // Clear state
                 startCell.classList.remove("selected-break-start");
                 startCell = null;
-
+                
                 this.displaySchedule(this.savedSchedules[this.currentIndex] || []);
             });
         });
-
+        
         // Clear on outside click
         document.addEventListener("click", (e) => {
             if (!e.target.closest("td.day-slot") && startCell) {
@@ -546,13 +542,13 @@ parseTime(timeStr) {
             }
         });
     }
-
-
-
+    
+    
+    
     addBreakBlock(day, start, end) {
         this.unavailableBlocks.push({ day, start, end });
     }
-
+    
 }
 
 // Export the signleton class
