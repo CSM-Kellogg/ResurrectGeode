@@ -127,20 +127,24 @@ table.schedule-table {
     padding-right: 0.5rem;
     background-color: #f8f9fa;
     font-weight: bold;
+    user-select: none;
 }
 
 .schedule-block {
     background-color: rgba(0, 123, 255, 0.4);
     width: 100%;
     position: absolute;
+    top: 0px;
+    left: 0px;
     z-index: 10;
     font-size: .7rem;           /* Larger text */
     line-height: 1.2;             /* Good spacing between wrapped lines */
-    padding: 4px;
+    padding: 2px;
     white-space: normal;          /* Allows text wrapping */
     word-break: break-word;       /* Breaks long words if needed */
     overflow: hidden;
     cursor: pointer;
+    user-select: none;
 }
 
 .custom-tooltip {

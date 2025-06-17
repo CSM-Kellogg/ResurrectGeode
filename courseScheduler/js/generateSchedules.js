@@ -341,7 +341,7 @@ class genSchedule {
         });
         
         for (const section of someSchedule) {
-            // Some debug for invalud sections
+            // Some debug for invalud sections, honestly this logic is a little dodgey
             if (!someSchedule || someSchedule.length === 0) {
                 console.warn("⚠️ Skipped empty schedule:", someSchedule);
             }
@@ -363,14 +363,17 @@ class genSchedule {
                 continue;
             }
             
+            // Gets the parent course of the current class and the color to paint this class
             const key = section.parentCourse["class name"];
             const color = colorMap.get(key);
             
+            // goofy ahh if statement
             if (!section.meetingRange || typeof section.meetingRange !== 'string' || !section.meetingRange.includes(' - ')) {
                 console.warn("Invalid or missing meetingRange:", section);
                 continue;
             }
             
+            // Display the schedule block on the schedule grid
             const [startStr, endStr] = section.meetingRange.split(' - ');
             const start = this.parseTime(startStr);
             const end = this.parseTime(endStr);
@@ -382,6 +385,7 @@ class genSchedule {
                 const startHour = Math.floor(start / 60);
                 const startMin = start % 60;
                 const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
+
                 if (cell) {
                     const block = document.createElement("div");
                     const instructor = section.instructorName || "Unknown";
@@ -423,29 +427,12 @@ class genSchedule {
                         tooltip.style.display = "none";
                     });
                     
-                    // Tooltip with class info
-                    block.title = `Section ${sectionCode}
-                    CRN: ${crn}
-                    Instructor: ${instructor}
-                    Room: ${room}`;
                     block.className = "schedule-block";
                     block.style.backgroundColor = color;
-                    block.style.position = "absolute";
-                    block.style.zIndex = "10";
-                    block.style.width = "100%";
                     block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
-                    block.style.top = "0px";
-                    block.style.left = "0px";
-                    block.style.overflow = "hidden";
-                    block.style.padding = "2px";
-                    block.style.cursor = "pointer";
                     
                     block.textContent = key;
                     
-                    // Tooltip on hover
-                    block.title = `Section ${section.sectionCode || "?"}\nCRN: ${section.CRN}\nInstructor: ${section.instructorName || "?"}`;
-                    
-                    cell.style.position = "relative";
                     cell.appendChild(block);
                 }
             }
@@ -477,6 +464,7 @@ class genSchedule {
                 for (let d = 0; d < 5; d++) {
                     const cell = document.createElement("td");
                     cell.className = "day-slot";
+                    cell.style.position = 'relative';
                     cell.dataset.day = d;
                     cell.dataset.time = `${h}:${m}`;
                     row.appendChild(cell);
@@ -486,6 +474,8 @@ class genSchedule {
             }
         }
     }
+
+    // Where the break sections are... added to the display?
     enableBreakSelection() {
         let startCell = null;
         
@@ -542,8 +532,6 @@ class genSchedule {
             }
         });
     }
-    
-    
     
     addBreakBlock(day, start, end) {
         this.unavailableBlocks.push({ day, start, end });
