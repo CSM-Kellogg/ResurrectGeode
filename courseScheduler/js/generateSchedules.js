@@ -517,11 +517,26 @@ class genSchedule {
             cell.addEventListener("mouseover", () => {
                 if (!this.breakEditMode || !startCell) return;
 
-                // Update the selection area accordingly
-                visAid.style.width = `${cell.getBoundingClientRect().x - visAid.getBoundingClientRect().x}px`;
-                visAid.style.height = `${cell.getBoundingClientRect().y - visAid.getBoundingClientRect().y}px`;
+                let endX = cell.getBoundingClientRect().right;
+                let endY = cell.getBoundingClientRect().bottom;
 
-                console.log(`${cell.getBoundingClientRect().x - visAid.getBoundingClientRect().x}px`);
+                let originX = startCell.getBoundingClientRect().left;
+                let originY = startCell.getBoundingClientRect().top;
+
+                if (endY <= originY) {
+                    originY = cell.getBoundingClientRect().top;
+                    endY = startCell.getBoundingClientRect().bottom;
+                }
+
+                if (endX <= originX) {
+                    originX = cell.getBoundingClientRect().left;
+                    endX = startCell.getBoundingClientRect().right;
+                }
+
+                visAid.style.top = `${originY}px`;
+                visAid.style.left = `${originX}px`;
+                visAid.style.width = `${endX - originX}px`;
+                visAid.style.height = `${endY - originY}px`;
             });
         });
         
