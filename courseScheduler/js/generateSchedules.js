@@ -3,7 +3,7 @@
 
 import catalog from "./Catalog.js";
 import { createTooltip } from "./tooltip.js"
-
+import breakManager from "./breakManager.js"
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -31,10 +31,6 @@ class genSchedule {
         genSchedule._instance = this;
         this.savedSchedules = [];
         this.currentIndex = 0;
-        this.unavailableBlocks = []; 
-        this.unavailableBlocks = [];
-        this.breakEditMode = false;
-        this.isDraggingBreak = false;
     }
     
     // Generates a schedule from courses considering all sections
@@ -136,8 +132,6 @@ class genSchedule {
             }
         });
         
-        //console.log(allSections);
-        
         // Stores all valid schedules
         const validSchedules = [];
         
@@ -161,6 +155,16 @@ class genSchedule {
         
         recurse(0, []); // Start recursion on empty schedule
         
+        // Make this give more info
+        if (!validSchedules[0]) {
+            alert("Couldn't generate any schedules with the current selected set/breaks");
+            this.currentIndex = "💀";
+            this.savedSchedules = [];
+            this.updateCounter();
+            this.displaySchedule([]); // display empty
+            return;
+        }
+
         // Display schedules
         this.savedSchedules = validSchedules;
         this.currentIndex = 0;
@@ -192,7 +196,10 @@ class genSchedule {
         const nextBtn = document.getElementById("next-schedule");
         
         const total = this.savedSchedules.length;
-        const index = this.currentIndex + 1;
+        let index = this.currentIndex;
+        if (typeof(this.currentIndex) == "number") {
+            index += 1;
+        }
         
         if (counter) counter.textContent = `${index} / ${total}`;
         
@@ -229,7 +236,7 @@ class genSchedule {
                 }
                 
                 // Check for conflict with break blocks
-                for (const block of this.unavailableBlocks) {
+                for (const block of breakManager.getBreakBlocks()) {
                     if (
                         block.day === numericDay &&
                         Math.max(start, block.start) < Math.min(end, block.end)
@@ -267,29 +274,18 @@ class genSchedule {
     
     // Displays the schedule -- needs some work.
     displaySchedule(someSchedule) {
+        if (!someSchedule) {
+            console.log("Likely couldn't generate a schedule for you");
+            return;
+        }
+
         const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
         document.querySelectorAll(".schedule-block").forEach(el => el.remove());
         const colorList = Object.entries(my_colors);
         const colorMap = new Map();
         
         // Creates breaks between classes
-        document.querySelectorAll(".break-block").forEach(el => el.remove());
-        this.unavailableBlocks.forEach(({ day, start, end }) => {
-            const startHour = Math.floor(start / 60);
-            const startMin = start % 60;
-            const cell = document.querySelector(`[data-day="${day}"][data-time="${startHour}:${startMin}"]`);
-            if (!cell) return;
-            
-            const duration = end - start;
-            const height = ((duration) / 15) * cell.offsetHeight;
-            
-            const block = document.createElement("div");
-            block.className = "break-block";
-            block.style.height = `${height}px`;
-            block.textContent = "Break";
-            
-            cell.appendChild(block);
-        });
+        breakManager.display();
         
         // Tooltip to view the class details
         let tooltip = document.getElementById("custom-tooltip");
@@ -446,112 +442,6 @@ class genSchedule {
             }
         }
     }
-
-    // Where the break sections are... added to the display?
-    enableBreakSelection() {
-        let startCell = null;
-        let visAid = null;
-        
-        const cells = document.querySelectorAll("td.day-slot");
-        const daZone = document.querySelector('#right-column');
-
-        // Clears state of the edit mode
-        function clearState() {
-            startCell.classList.remove("selected-break-start");
-            startCell = null;
-            daZone.removeChild(visAid);
-        }
-
-        cells.forEach(cell => {
-            cell.addEventListener("click", () => {
-                if (!this.breakEditMode) return;
-
-                if (!startCell) {
-                    // First click = start
-                    startCell = cell;
-                    // The div to act as a visual aid
-                    visAid = document.createElement('div');
-                    visAid.className = 'break-edit-visaid';
-                    visAid.style.top = `${cell.getBoundingClientRect().y}px`;
-                    visAid.style.left = `${cell.getBoundingClientRect().x}px`;
-
-                    daZone.appendChild(visAid);
-
-                    cell.classList.add("selected-break-start");
-                    return;
-                }
-                
-                // Second click = end
-                const day1 = parseInt(startCell.dataset.day);
-                const day2 = parseInt(cell.dataset.day);
-                
-                // Must be same day - When this changes to a draggable click get rid of this
-
-                // The change: When multiple days are selected, iterate through
-                // all of them on the code below
-                if (day1 !== day2) {
-                    clearState();
-                    return alert("Break must be on the same day.");
-                }
-                
-                const [h1, m1] = startCell.dataset.time.split(':').map(Number);
-                const [h2, m2] = cell.dataset.time.split(':').map(Number);
-                const start = Math.min(h1 * 60 + m1, h2 * 60 + m2);
-                const end = Math.max(h1 * 60 + m1, h2 * 60 + m2) + 15; // include clicked cell
-                
-                // Prevent duplicates
-                const alreadyExists = this.unavailableBlocks.some(b =>
-                    b.day === day1 && b.start === start && b.end === end
-                );
-                if (!alreadyExists) {
-                    this.unavailableBlocks.push({ day: day1, start, end });
-                }
-                
-                // Clear state
-                clearState();
-                
-                this.displaySchedule(this.savedSchedules[this.currentIndex] || []);
-            });
-
-            // Visual aid
-            cell.addEventListener("mouseover", () => {
-                if (!this.breakEditMode || !startCell) return;
-
-                let endX = cell.getBoundingClientRect().right;
-                let endY = cell.getBoundingClientRect().bottom;
-
-                let originX = startCell.getBoundingClientRect().left;
-                let originY = startCell.getBoundingClientRect().top;
-
-                if (endY <= originY) {
-                    originY = cell.getBoundingClientRect().top;
-                    endY = startCell.getBoundingClientRect().bottom;
-                }
-
-                if (endX <= originX) {
-                    originX = cell.getBoundingClientRect().left;
-                    endX = startCell.getBoundingClientRect().right;
-                }
-
-                visAid.style.top = `${originY}px`;
-                visAid.style.left = `${originX}px`;
-                visAid.style.width = `${endX - originX}px`;
-                visAid.style.height = `${endY - originY}px`;
-            });
-        });
-        
-        // Clear on outside click
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest("td.day-slot") && startCell) {
-                clearState();
-            }
-        });
-    }
-    
-    addBreakBlock(day, start, end) {
-        this.unavailableBlocks.push({ day, start, end });
-    }
-    
 }
 
 // Export the signleton class

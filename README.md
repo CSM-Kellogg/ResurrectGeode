@@ -39,21 +39,9 @@ CRN, isOnline, classType, isFacetoFace, section, department, courseNum (301), cl
  B. search for CRN
  C. Sort the list of courses
 
-#### 3. Generating valid schedules - 66% DONE
- 
- B. the algorithm - DONE
-    1. For each section in a class, recursively find if the rest of set of classes can be loaded in
-    2. Every time I can place all classes in the schedule, add the list of CRNS to the result
- C. Lenience with times being blocked out (a bit more nuanced but whatever)
- D. Linked Courses - DONE
-
 #### 4. The scheduling UI
  A. General display things
     1. Displaying what classes conflict and when
-    2. Showing pages of schedules instead of an arrow to go to prev and next
-       a. Combine schedules with non-unique time slots
-         I.  A notification icon to select a professor
-         II. Should show CRN, rateMyProfessor stars professor, and availability
     3. Load the schedule ABOVE the table
     4. Needs the little lines between and time of day - DONE
  B. Ability to block out times

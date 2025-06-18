@@ -169,11 +169,6 @@ table.schedule-table {
     outline: 2px solid red;
 }
 
-/* .break-block button {
-    padding: 0;
-    line-height: 1;
-} */
-
 .break-block {
     background-color: rgb(159, 114, 75);
     position: absolute;
@@ -182,7 +177,8 @@ table.schedule-table {
     width: 100%;
     height: 100%;
     z-index: 5;
-    pointer-events: none; /* So break blocks don’t block clicks */
+    pointer-events: none; /* Toggles depending on edit mode */
+    cursor: pointer;
     font-size: 0.7rem;
     padding: 2px;
 }

@@ -2,12 +2,19 @@ import catalog from './Catalog.js';
 import { displayCourseContent } from './coursePopup.js';
 import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
-import genScheduleInstance from './generateSchedules.js';
+import breakManager from './breakManager.js';
 
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
-  genSchedule.drawBackground();
-  genSchedule.enableBreakSelection();
+    genSchedule.drawBackground();
+    breakManager.enableBreakSelection();
+    
+    // Shit uhh... idk a better way
+    // Absolutely SHITTING on what I learned in 306
+    const cells = document.querySelectorAll("td.day-slot");
+    cells.forEach((cell) => {cell.addEventListener("click", () => {
+        genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);
+    });});
 });
 
 //wasn't too sure where to put this, you can move it if you would like:)
@@ -29,30 +36,28 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
 });
 
 document.getElementById("toggle-break-mode").addEventListener("click", () => {
-    genSchedule.breakEditMode = !genSchedule.breakEditMode;
+    breakManager.toggleMode();
     const btn = document.getElementById("toggle-break-mode");
-    btn.textContent = genSchedule.breakEditMode ? "Disable Break Edit Mode" : "Enable Break Edit Mode";
+    btn.textContent = breakManager.getMode() ? "Disable Break Edit Mode" : "Enable Break Edit Mode";
     btn.classList.toggle("btn-danger");
     btn.classList.toggle("btn-success");
     btn.classList.toggle("text-light");
 });
 
 document.getElementById("clear-breaks").addEventListener("click", () => {
-    genSchedule.unavailableBlocks = [];
+    breakManager.clearBreaks();
     genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);
 });
-let intervalId = null;
-let currentDirection = null;
 
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowRight") {
-    console.log(event.key)
-    genScheduleInstance.nextSchedule();
-  } else if (event.key === "ArrowLeft") {
-    console.log(event.key)
-    genScheduleInstance.prevSchedule();
-  }
+    if (event.key === "ArrowRight") {
+        console.log(event.key)
+        genSchedule.nextSchedule();
+    } else if (event.key === "ArrowLeft") {
+        console.log(event.key)
+        genSchedule.prevSchedule();
+    }
 });
 
 // Submission to search box
