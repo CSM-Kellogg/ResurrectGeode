@@ -9,7 +9,20 @@ Need to redirect people from trailhead to elluciancloud
 
 I would like to do updates on class availability but thats a problem for another day
 
-### TODO
+### TODO - One bit at a time
+
+1. Instead of cycling through generated schedules, allow users to drag and drop existing schedules
+   A. I have interactJS setup, should just be a copy-paste of the ".draggable" class on their website with some minor adjustments
+      1. Maybe make a visual aid of possible sections the user can select
+      
+   B. Allow users to click the class within the schedule window to select different professors / sections
+      1. When the user clicks the class, a lil popup should appear with a table of "section, professor, ratemyprofessor rating"
+      2. Have an option to select section by availability instead
+      3. Eventually, availability will be implemented :p
+   
+2. Retrieve the availability of classes
+
+### OLD TODO
 
 #### 1. Create a CSV of all classes: -- 90% DONE
  A. Fix the visual bug of classes being lecture/online - DONE
