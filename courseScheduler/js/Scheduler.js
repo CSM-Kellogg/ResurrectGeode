@@ -8,9 +8,11 @@ import breakManager from './breakManager.js';
 window.addEventListener("load", (event) => {
     genSchedule.drawBackground();
     breakManager.enableBreakSelection();
+    document.getElementById("toggle-break-mode").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+    breakManager.editMode = true;
     
     // Shit uhh... idk a better way
-    // Absolutely SHITTING on what I learned in 306
+    // Absolutely DOOKIE-ING on what I learned in 306
     const cells = document.querySelectorAll("td.day-slot");
     cells.forEach((cell) => {cell.addEventListener("click", () => {
         genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);

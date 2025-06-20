@@ -177,7 +177,6 @@ table.schedule-table {
     width: 100%;
     height: 100%;
     z-index: 5;
-    pointer-events: none; /* Toggles depending on edit mode */
     cursor: pointer;
     font-size: 0.7rem;
     padding: 2px;

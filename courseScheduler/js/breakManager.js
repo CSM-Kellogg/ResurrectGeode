@@ -34,7 +34,6 @@ export class breakManager {
             const block = document.createElement("div");
             block.className = "break-block";
             block.style.height = `${height}px`;
-            block.style.pointerEvents = (this.editMode) ? "none" : "all";
             block.textContent = "Break";
 
             // Remove break at index
@@ -66,12 +65,15 @@ export class breakManager {
             // The div to act as a visual aid
             visAid = document.createElement('div');
             visAid.className = 'break-edit-visaid';
-            // visAid.style.top = `${cell.getBoundingClientRect().y}px`;
-            // visAid.style.left = `${cell.getBoundingClientRect().x}px`;
 
             daZone.appendChild(visAid);
 
             cell.classList.add("selected-break-start");
+
+            // Make the existing blocks non-toggleable
+            document.querySelectorAll(".break-block").forEach((block) => {
+                block.style.setProperty("pointer-events", "none", "important");
+            });
         }
 
         function store(cell, breakBlocks) {
@@ -85,14 +87,22 @@ export class breakManager {
                 const start = Math.min(h1 * 60 + m1, h2 * 60 + m2);
                 const end = Math.max(h1 * 60 + m1, h2 * 60 + m2) + 15; // include clicked cell
                 
-                // Prevent duplicates -- currently broken, just merge duplicates
-                const alreadyExists = breakBlocks.some(b =>
-                    b.day === i && b.start === start && b.end === end
-                );
-                if (!alreadyExists) {
+                // merge overlap
+                let mergedBlock;
+                if (mergedBlock = breakBlocks.find(block => block.day == i &&
+                    (block.start <= start || block.end >= end))) {
+
+                    mergedBlock.start = Math.min(mergedBlock.start, start);
+                    mergedBlock.end = Math.max(mergedBlock.end, end);
+                } else {
                     breakBlocks.push({ day: i, start, end });
                 }
             }
+
+            // Make the blocks edit-able again
+            document.querySelectorAll(".break-block").forEach((block) => {
+                block.style.pointerEvents = "all";
+            });
         }
 
         cells.forEach(cell => {
@@ -155,10 +165,6 @@ export class breakManager {
 
     toggleMode() {
         this.editMode = !this.editMode;
-
-        document.querySelectorAll(".break-block").forEach((block) => {
-            block.style.pointerEvents = (this.editMode) ? "none" : "all";
-        });
     }
 
     getBreakBlocks() {
