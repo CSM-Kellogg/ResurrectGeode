@@ -90,7 +90,9 @@ export class breakManager {
                 // merge overlap
                 let mergedBlock;
                 if (mergedBlock = breakBlocks.find(block => block.day == i &&
-                    (block.start <= start || block.end >= end))) {
+                    ((start <= block.start && end >= block.start) ||
+                    (start >= block.start && end <= block.end) ||
+                    (start <= block.end && end >= block.end)))) {
 
                     mergedBlock.start = Math.min(mergedBlock.start, start);
                     mergedBlock.end = Math.max(mergedBlock.end, end);
