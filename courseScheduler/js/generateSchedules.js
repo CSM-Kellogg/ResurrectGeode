@@ -2,7 +2,7 @@
 // By: Liam Kellogg, Grey Garner, and some ChatGPT
 
 import catalog from "./Catalog.js";
-import { createTooltip } from "./tooltip.js"
+import { createTooltipEvents } from "./tooltip.js"
 import breakManager from "./breakManager.js"
 
 // The minecraft wool colors btw (new textures)
@@ -31,6 +31,11 @@ class genSchedule {
         genSchedule._instance = this;
         this.savedSchedules = [];
         this.currentIndex = 0;
+        this.choiceIndices = [];
+    }
+
+    #resetChocies() {
+        this.choiceIndices = new Array(this.savedSchedules[0].length).fill(0);
     }
     
     // Generates a schedule from courses considering all sections
@@ -65,7 +70,6 @@ class genSchedule {
                     if (!rawMeetingDays.includes(',')) {
                         rawMeetingDays += ',';
                     }
-                    //console.log(rawMeetingDays);
                     
                     return {
                         CRN,
@@ -96,7 +100,7 @@ class genSchedule {
                 }
             }).filter(Boolean); // Only filters out non-null values
         });
-        
+
         // Handle linked sections here and append the sections to all sections
         selectedCourses.forEach((course) => {
             // For each selected course with linked sections, add those sections
@@ -104,8 +108,9 @@ class genSchedule {
             if (m_linkedSections[0] != null) {
                 // Assuming the linked sections for any course are the same course
                 let pCourse = catalog.courseFromCRN(m_linkedSections[0]);
-                
-                if (allSections.some(c => c.parentCourse == pCourse)) {
+
+                // Could be problematic, but its not my fault that linked sections are inconsistent
+                if (allSections.some(c => c.some(s => s.parentCourse['class name'] == pCourse['class name']))) {
                     console.log("Already added linked course");
                     return; // equivalent to continue
                 }
@@ -122,7 +127,16 @@ class genSchedule {
                         
                         allSections[c_index].push({
                             CRN: linkedcrn,
-                            meetingDays: linkedSection[5],
+                            meetingDays: (linkedSection[5] || '')
+                            .split(',')
+                            .map(day => day.trim().toLowerCase())
+                            .map(day => ({
+                                monday: 'M',
+                                tuesday: 'T',
+                                wednesday: 'W',
+                                thursday: 'R',
+                                friday: 'F'
+                            }[day] || '')).join(''),
                             meetingRange: linkedSection[7],
                             room: linkedSection[8],
                             parentCourse: pCourse,
@@ -131,6 +145,31 @@ class genSchedule {
                 });
             }
         });
+
+        // Merge sections that have the same time
+        allSections.forEach((c) => {
+            for (let i = 0; i < c.length; i ++) {
+                c[i].CRN = [c[i].CRN];
+                c[i].instructorName = [c[i].instructorName];
+                c[i].room = [c[i].room];
+                c[i].sectionCode = [c[i].sectionCode];
+
+                for (let j = i + 1; j < c.length; j ++) {
+                    if (c[i].meetingDays == c[j].meetingDays && c[i].meetingRange.trim().replace(/\s+/g, ' ') === c[j].meetingRange.trim().replace(/\s+/g, ' ')) {
+                            
+                        c[i].CRN.push(c[j].CRN);
+                        c[i].instructorName.push(c[j].instructorName);
+                        c[i].room.push(c[j].room);
+                        c[i].sectionCode.push(c[j].sectionCode);
+
+                        c.splice(j, 1);
+                        j -= 1;
+                    }
+                }
+            }
+        });
+
+        console.log(allSections);
         
         // Stores all valid schedules
         const validSchedules = [];
@@ -155,7 +194,7 @@ class genSchedule {
         
         recurse(0, []); // Start recursion on empty schedule
         
-        // Make this give more info
+        // Make this give more info about what courses conflict or what the exact error is
         if (!validSchedules[0]) {
             alert("Couldn't generate any schedules with the current selected set/breaks");
             this.currentIndex = "💀";
@@ -168,6 +207,7 @@ class genSchedule {
         // Display schedules
         this.savedSchedules = validSchedules;
         this.currentIndex = 0;
+        this.#resetChocies();
         
         this.displaySchedule(validSchedules[0]);
         this.updateCounter();
@@ -254,7 +294,7 @@ class genSchedule {
     
     
     /**
-    * Parses AM/PM time into an integer of minutes from midnight
+    * Parses AM/PM time into an integer of minutes from midnight (e.g `02:00 PM`)
     * @param {string} timeStr 
     * @returns An integer -- minutes from midnight 
     */
@@ -287,18 +327,14 @@ class genSchedule {
         // Creates breaks between classes
         breakManager.display();
         
-        // Tooltip to view the class details
-        let tooltip = document.getElementById("custom-tooltip");
-        if (tooltip) {
-            tooltip.innerHTML = '';
-            tooltip.style.display = "none";
-        } else {
-            tooltip = document.createElement("div");
-            tooltip.id = "custom-tooltip";
-            tooltip.className = "custom-tooltip";
-            document.body.appendChild(tooltip);
-        }
+        // Tooltip to view some class details (events added to schedule blocks)
+        document.querySelectorAll('#custom-tooltip').forEach(el => el.remove());
+        const tooltip = document.createElement("div");
+        tooltip.id = "custom-tooltip";
+        document.body.appendChild(tooltip);
+        tooltip.style.display = "none";
         
+        // Add da colors
         someSchedule.forEach((section, i) => {
             const key = section.parentCourse["class name"];
             if (!colorMap.has(key)) {
@@ -307,8 +343,9 @@ class genSchedule {
             }
         });
         
+        let i = 0;
         for (const section of someSchedule) {
-            // Some debug for invalud sections, honestly this logic is a little dodgey
+            // Some debug for invalid sections, honestly this logic is a little dodgey
             if (!someSchedule || someSchedule.length === 0) {
                 console.warn("⚠️ Skipped empty schedule:", someSchedule);
             }
@@ -354,46 +391,22 @@ class genSchedule {
                 const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
 
                 if (cell) {
-                    //createTooltip();
                     const block = document.createElement("div");
-                    const instructor = section.instructorName || "Unknown";
-                    const crn = section.CRN || "Unknown";
-                    const sectionCode = section.sectionCode || "N/A";
-                    const room = section.room || "TBD";
                     
-                    block.addEventListener("mouseenter", (e) => {
-                        tooltip.innerHTML = `<strong class="mb-1">${section.parentCourse['class name']}</strong>
-                        <strong>Section:</strong> ${sectionCode}
-                        <strong>CRN:</strong> ${crn}
-                        <strong>Instructor:</strong> ${instructor}
-                        <strong>Room:</strong> ${room}`;
-                        tooltip.style.display = "block";
-                    });
-                    
-                    block.addEventListener("mousemove", (e) => {
-                        const tooltipRect = tooltip.getBoundingClientRect();
-                        const margin = 10;
-                        
-                        let left = e.clientX + 15;
-                        let top = e.clientY + 15;
-                        
-                        // If tooltip would go off the right edge
-                        if (left + tooltipRect.width + margin > window.innerWidth) {
-                            left = e.clientX - tooltipRect.width - 15;
-                        }
-                        
-                        // If tooltip would go off the bottom edge
-                        if (top + tooltipRect.height + margin > window.innerHeight) {
-                            top = e.clientY - tooltipRect.height - 15;
-                        }
-                        
-                        tooltip.style.left = `${left}px`;
-                        tooltip.style.top = `${top}px`;
-                    });
-                    
-                    block.addEventListener("mouseleave", () => {
-                        tooltip.style.display = "none";
-                    });
+                    let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
+                    const currChoice = this.choiceIndices[i];
+                    if (section.CRN.length > 1) {
+                        header += `(${currChoice + 1}/${section.CRN.length})`;
+                    }
+
+                    const tooltipInfo = `${header}
+                    <strong>Section:</strong> ${section.sectionCode[currChoice] || "N/A"}
+                    <strong>CRN:</strong> ${section.CRN[currChoice] || "Unknown"}
+                    <strong>Instructor:</strong> ${section.instructorName[currChoice] || "Unknown"}
+                    <strong>Room:</strong> ${section.room[currChoice] || "TBD"}`;
+                    tooltip.style.display = "block";
+
+                    createTooltipEvents(block, tooltip, tooltipInfo);
                     
                     block.className = "schedule-block";
                     block.style.backgroundColor = color;
@@ -402,8 +415,12 @@ class genSchedule {
                     block.textContent = key;
                     
                     cell.appendChild(block);
+                } else {
+                    console.warn(`couldn't find the cell to place a class...`);
                 }
             }
+
+            i ++;
         }
     }
     

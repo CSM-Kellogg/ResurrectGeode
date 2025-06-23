@@ -1,31 +1,27 @@
-//Yknow what, imma cross the bridge when I get there
 
-export function createTooltip(section, Event, cellHeight) {
-    const block = document.createElement("div");
-    const instructor = section.instructorName || "Unknown";
-    const crn = section.CRN || "Unknown";
-    const sectionCode = section.sectionCode || "N/A";
-    const room = section.room || "TBD";
+/**
+ * Creates events for a standard tooltip
+ * @param {HTMLElement} parent The parent element to attach the tooltip to
+ * @param {HTMLELEMENT} tooltipObj The tooltip object
+ * @param {string} innerHTML What the innerHTML of the tooltip object will contain
+ */
+export function createTooltipEvents(parent, tooltipObj, innerHTML) {
     
-    block.addEventListener("mouseenter", (e) => {
-        tooltip.innerHTML = `<strong class="mb-1">${section.parentCourse['class name']}</strong>
-        <strong>Section:</strong> ${sectionCode}
-        <strong>CRN:</strong> ${crn}
-        <strong>Instructor:</strong> ${instructor}
-        <strong>Room:</strong> ${room}`;
-        tooltip.style.display = "block";
+    parent.addEventListener("mouseenter", () => {
+        tooltipObj.innerHTML = innerHTML;
+        tooltipObj.style.display = 'block';
     });
     
-    block.addEventListener("mousemove", (e) => {
-        const tooltipRect = tooltip.getBoundingClientRect();
+    parent.addEventListener("mousemove", (e) => {
+        const tooltipRect = tooltipObj.getBoundingClientRect();
         const margin = 10;
         
-        let left = Event.clientX + 15;
-        let top = Event.clientY + 15;
+        let left = e.clientX + 15;
+        let top = e.clientY + 15;
         
         // If tooltip would go off the right edge
         if (left + tooltipRect.width + margin > window.innerWidth) {
-            left = Event.clientX - tooltipRect.width - 15;
+            left = e.clientX - tooltipRect.width - 15;
         }
         
         // If tooltip would go off the bottom edge
@@ -33,19 +29,11 @@ export function createTooltip(section, Event, cellHeight) {
             top = e.clientY - tooltipRect.height - 15;
         }
         
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
+        tooltipObj.style.left = `${left}px`;
+        tooltipObj.style.top = `${top}px`;
     });
     
-    block.addEventListener("mouseleave", () => {
-        tooltip.style.display = "none";
+    parent.addEventListener("mouseleave", () => {
+        tooltipObj.style.display = "none";
     });
-    
-    block.className = "schedule-block";
-    block.style.backgroundColor = color;
-    block.style.height = ((end - start) / 15) * cellHeight + "px";
-    
-    block.textContent = section.parentCourse['class name'];
-
-    return block;
 }

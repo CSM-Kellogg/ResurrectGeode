@@ -7,6 +7,7 @@ import catalog from "./Catalog.js";
 class savedCourses {
     // Stores course in entirety
     courseList = [];
+    courseMask = [];
     parentNode = null;
 
     // Singleton constructor
@@ -21,6 +22,15 @@ class savedCourses {
         // There MUST be a better way of handling this but I am unsure :(
         this.parentNode = document.getElementById('saved-courses').children[1];
         this.loadSavedCourses();
+    }
+
+    getActiveCourses() {
+        tmp = [];
+        for (let i = 0; i < this.courseList.length; i ++) {
+            if (this.courseMask[i] == 1) {
+                tmp.push(this.courseList[i]);
+            }
+        }
     }
     
     /**
@@ -92,8 +102,14 @@ class savedCourses {
 
             tableRow.querySelector('td[data="credits"]').innerHTML = element['credits'];
             
-            tableRow.querySelector('td[data="toggler"] button').addEventListener('click', () => {
-
+            let activeToggleBtn = tableRow.querySelector('td[data="toggler"] button');
+            activeToggleBtn.addEventListener('click', () => {
+                if (activeToggleBtn.innerHTML == 'ON') {
+                    activeToggleBtn.innerHTML = 'OFF';
+                    console.log(tableRow);
+                } else {
+                    activeToggleBtn.innerHTML = 'ON';
+                }
             });
 
             tableRow.querySelector('td[data="trash-course"] button').addEventListener('click', () => {

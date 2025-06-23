@@ -147,7 +147,7 @@ table.schedule-table {
     user-select: none;
 }
 
-.custom-tooltip {
+#custom-tooltip {
     position: fixed;
     z-index: 9999;
     background: #fefefe;

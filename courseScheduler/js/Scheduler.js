@@ -29,7 +29,7 @@ document.getElementById("prev-schedule").addEventListener("click", () => {
 });
 
 document.getElementById("generate-schedule").addEventListener("click", () => {
-    const courses = savedCourses.getCourses();
+    const courses = savedCourses.getActiveCourses();
     if (courses.length === 0) {
         alert("No courses selected. Add some first.");
         return;
