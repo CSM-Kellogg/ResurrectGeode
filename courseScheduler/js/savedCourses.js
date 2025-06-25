@@ -6,8 +6,6 @@ import catalog from "./Catalog.js";
 // Is signleton
 class savedCourses {
     // Stores course in entirety
-    courseList = [];
-    courseMask = [];
     parentNode = null;
 
     // Singleton constructor
@@ -18,6 +16,7 @@ class savedCourses {
         // If it therefore not am, create a new instance and initialize it
         savedCourses._instance = this;
         this.courseList = [];
+        this.courseMask = [];
 
         // There MUST be a better way of handling this but I am unsure :(
         this.parentNode = document.getElementById('saved-courses').children[1];
@@ -25,12 +24,14 @@ class savedCourses {
     }
 
     getActiveCourses() {
-        tmp = [];
+        let tmp = [];
         for (let i = 0; i < this.courseList.length; i ++) {
             if (this.courseMask[i] == 1) {
                 tmp.push(this.courseList[i]);
             }
         }
+
+        return tmp;
     }
     
     /**
@@ -44,6 +45,7 @@ class savedCourses {
             return;
         }
         this.courseList.push(course);
+        this.courseMask.push(1);
         this.updateDisplay(this.parentNode);
 
         // Save to chrome storage
@@ -62,6 +64,7 @@ class savedCourses {
             console.log(this.courseList);
         } else {
             this.courseList.splice(atIndex, 1);
+            this.courseMask.splice(atIndex, 1);
             chrome.storage.local.set({ savedCourses: this.courseList }, () => {
             });
         }
@@ -71,6 +74,7 @@ class savedCourses {
         chrome.storage.local.get(['savedCourses'], (result) => {
             if (result.savedCourses && Array.isArray(result.savedCourses)) {
                 this.courseList = result.savedCourses;
+                this.courseMask = new Array(this.courseList.length).fill(1);
                 this.updateDisplay(this.parentNode);
             }
         });
@@ -83,7 +87,7 @@ class savedCourses {
         // Clear existing list
         parent.innerHTML = '';
 
-        this.courseList.forEach((element) => {
+        this.courseList.forEach((element, i) => {
 
             // Have to sort out this bug in searchCatalog
             let decoded_name = decodeHTML(element['class name']);
@@ -106,9 +110,10 @@ class savedCourses {
             activeToggleBtn.addEventListener('click', () => {
                 if (activeToggleBtn.innerHTML == 'ON') {
                     activeToggleBtn.innerHTML = 'OFF';
-                    console.log(tableRow);
+                    this.courseMask[i] = 0;
                 } else {
                     activeToggleBtn.innerHTML = 'ON';
+                    this.courseMask[i] = 1;
                 }
             });
 

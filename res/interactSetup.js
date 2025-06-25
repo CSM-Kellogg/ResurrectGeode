@@ -32,16 +32,14 @@ interact('.resize-drag')
             // update the element's style
             target.style.width = event.rect.width + 'px';
             target.style.height = event.rect.height + 'px';
-            
-            // translate when resizing from top or left edges
-            x += event.deltaRect.left;
-            y += event.deltaRect.top;
-            
-            //if (Math.abs(clientX0 - event.rect.right) > 10) {
-            target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-            // target.setAttribute('data-x', x);
-            // target.setAttribute('data-y', y);
+            if (event.edges.right) x += event.deltaRect.right;
+            if (event.edges.bottom) y += event.deltaRect.bottom;
+
+            target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
         }
     },
     modifiers: [

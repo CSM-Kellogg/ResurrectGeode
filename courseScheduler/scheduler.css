@@ -86,11 +86,20 @@ html, body {
     padding: 4px 15px;
     font-size: 18px;
     cursor: pointer;
+    height: 100%;
     transition: background-color 0.3s ease;
 }
 
 .close-btn:hover {
     background-color: rgb(220,50,50);
+}
+
+#add-course-btn {
+    background-color: #e7f1ff;
+}
+
+#add-course-btn:hover {
+    background-color: #9fc7ff;
 }
 
 .flex-container {
@@ -218,6 +227,7 @@ popup using interactJS, ty ChatGPT
     border-radius: 8px;
     overflow: auto;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    scrollbar-gutter: stable;
     /* resize: none; Disable native resizer */
     z-index: 11;
     user-select: none;

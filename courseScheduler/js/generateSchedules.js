@@ -2,7 +2,7 @@
 // By: Liam Kellogg, Grey Garner, and some ChatGPT
 
 import catalog from "./Catalog.js";
-import { createTooltipEvents } from "./tooltip.js"
+import Tooltip from "./tooltip.js"
 import breakManager from "./breakManager.js"
 
 // The minecraft wool colors btw (new textures)
@@ -168,8 +168,6 @@ class genSchedule {
                 }
             }
         });
-
-        console.log(allSections);
         
         // Stores all valid schedules
         const validSchedules = [];
@@ -328,11 +326,7 @@ class genSchedule {
         breakManager.display();
         
         // Tooltip to view some class details (events added to schedule blocks)
-        document.querySelectorAll('#custom-tooltip').forEach(el => el.remove());
-        const tooltip = document.createElement("div");
-        tooltip.id = "custom-tooltip";
-        document.body.appendChild(tooltip);
-        tooltip.style.display = "none";
+        Tooltip.resetToolTip();
         
         // Add da colors
         someSchedule.forEach((section, i) => {
@@ -345,37 +339,9 @@ class genSchedule {
         
         let i = 0;
         for (const section of someSchedule) {
-            // Some debug for invalid sections, honestly this logic is a little dodgey
-            if (!someSchedule || someSchedule.length === 0) {
-                console.warn("⚠️ Skipped empty schedule:", someSchedule);
-            }
-            if (
-                !section.meetingRange ||
-                typeof section.meetingRange !== "string" ||
-                !section.meetingRange.includes(" - ")
-            ) {
-                console.warn("❌ Skipped: Invalid meetingRange:", section);
-                continue;
-            }
-            
-            if (
-                !section.meetingDays ||
-                typeof section.meetingDays !== "string" ||
-                !section.meetingDays.match(/[MTWRF]/)
-            ) {
-                console.warn("❌ Skipped: Invalid meetingDays:", section);
-                continue;
-            }
-            
             // Gets the parent course of the current class and the color to paint this class
             const key = section.parentCourse["class name"];
             const color = colorMap.get(key);
-            
-            // goofy ahh if statement
-            if (!section.meetingRange || typeof section.meetingRange !== 'string' || !section.meetingRange.includes(' - ')) {
-                console.warn("Invalid or missing meetingRange:", section);
-                continue;
-            }
             
             // Display the schedule block on the schedule grid
             const [startStr, endStr] = section.meetingRange.split(' - ');
@@ -404,9 +370,9 @@ class genSchedule {
                     <strong>CRN:</strong> ${section.CRN[currChoice] || "Unknown"}
                     <strong>Instructor:</strong> ${section.instructorName[currChoice] || "Unknown"}
                     <strong>Room:</strong> ${section.room[currChoice] || "TBD"}`;
-                    tooltip.style.display = "block";
 
-                    createTooltipEvents(block, tooltip, tooltipInfo);
+                    // Adds the tool tip events to a parent element
+                    Tooltip.createTooltipEvents(block, tooltipInfo);
                     
                     block.className = "schedule-block";
                     block.style.backgroundColor = color;

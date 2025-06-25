@@ -1,39 +1,61 @@
+// Yet another singleton class because the tooltip can only ever be one element
 
-/**
- * Creates events for a standard tooltip
- * @param {HTMLElement} parent The parent element to attach the tooltip to
- * @param {HTMLELEMENT} tooltipObj The tooltip object
- * @param {string} innerHTML What the innerHTML of the tooltip object will contain
- */
-export function createTooltipEvents(parent, tooltipObj, innerHTML) {
-    
-    parent.addEventListener("mouseenter", () => {
-        tooltipObj.innerHTML = innerHTML;
-        tooltipObj.style.display = 'block';
-    });
-    
-    parent.addEventListener("mousemove", (e) => {
-        const tooltipRect = tooltipObj.getBoundingClientRect();
-        const margin = 10;
+
+class Tooltip {
+    constructor() {
+        // If it exists, no need to do anything else
+        if (Tooltip._instance) return Tooltip._instance;
         
-        let left = e.clientX + 15;
-        let top = e.clientY + 15;
+        // If it therefore not am, create a new instance and initialize it
+        Tooltip._instance = this;
+
+        this.HTMLObj = null;
+    }
+
+    resetToolTip() {
+        // Tooltip to view some class details (events added to schedule blocks)
+        document.querySelectorAll('#custom-tooltip').forEach(el => el.remove());
+        this.HTMLObj = document.createElement("div");
+        this.HTMLObj.id = "custom-tooltip";
+        document.body.appendChild(this.HTMLObj);
+        this.HTMLObj.style.display = "none";
+    }
+
+    createTooltipEvents(parent, innerHTML) {
+        this.HTMLObj.style.display = "block"; // Toggle display from none to block
+
+        parent.addEventListener("mouseenter", () => {
+            this.HTMLObj.innerHTML = innerHTML;
+            this.HTMLObj.style.display = 'block';
+        });
         
-        // If tooltip would go off the right edge
-        if (left + tooltipRect.width + margin > window.innerWidth) {
-            left = e.clientX - tooltipRect.width - 15;
-        }
+        parent.addEventListener("mousemove", (e) => {
+            const tooltipRect = this.HTMLObj.getBoundingClientRect();
+            const margin = 10;
+            
+            let left = e.clientX + 15;
+            let top = e.clientY + 15;
+            
+            // If tooltip would go off the right edge
+            if (left + tooltipRect.width + margin > window.innerWidth) {
+                left = e.clientX - tooltipRect.width - 15;
+            }
+            
+            // If tooltip would go off the bottom edge
+            if (top + tooltipRect.height + margin > window.innerHeight) {
+                top = e.clientY - tooltipRect.height - 15;
+            }
+            
+            this.HTMLObj.style.left = `${left}px`;
+            this.HTMLObj.style.top = `${top}px`;
+        });
         
-        // If tooltip would go off the bottom edge
-        if (top + tooltipRect.height + margin > window.innerHeight) {
-            top = e.clientY - tooltipRect.height - 15;
-        }
-        
-        tooltipObj.style.left = `${left}px`;
-        tooltipObj.style.top = `${top}px`;
-    });
-    
-    parent.addEventListener("mouseleave", () => {
-        tooltipObj.style.display = "none";
-    });
+        parent.addEventListener("mouseleave", () => {
+            this.HTMLObj.style.display = "none";
+        });
+    }
+
 }
+
+const toolTipInstance = new Tooltip();
+export default toolTipInstance;
