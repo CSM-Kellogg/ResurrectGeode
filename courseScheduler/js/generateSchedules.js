@@ -4,6 +4,7 @@
 import catalog from "./Catalog.js";
 import Tooltip from "./tooltip.js"
 import breakManager from "./breakManager.js"
+import { displayOptionsPopup } from "./optionsPopup.js";
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -363,6 +364,7 @@ class genSchedule {
                     const currChoice = this.choiceIndices[i];
                     if (section.CRN.length > 1) {
                         header += `(${currChoice + 1}/${section.CRN.length})`;
+                        displayOptionsPopup(cell);
                     }
 
                     const tooltipInfo = `${header}
