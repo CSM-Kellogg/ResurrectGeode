@@ -13,67 +13,7 @@ CLASS_DEET_SELECT = [
     "Subject", "Course Number", "Title", "Credit Hours"
 ];
 
-DEBUG_MODE = false;
-
-// Takes stuff like &amp; out
-function decodeHTML(input) {
-    const parser = new DOMParser();
-    let prev, decoded = input;
-
-    do {
-        prev = decoded;
-        const doc = parser.parseFromString(prev, "text/html");
-        decoded = doc.documentElement.textContent;
-    } while (decoded !== prev);
-
-    return decoded;
-}
-
-function getElem(someXPath) {
-    const elem = document.evaluate(
-        someXPath,
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null
-    ).singleNodeValue;
-    
-    return elem
-}
-
-// Clicks a button given the XPath
-function safeClick(someXPath) {
-    button = getElem(someXPath);
-    
-    if (button) {
-        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    } else {
-        console.warn('Button not found.');
-    }
-}
-
-function waitFor(predicate, interval = 100, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-        const startTime = Date.now();
-
-        const check = () => {
-            const result = predicate();
-            if (result) {
-                resolve(result);
-                return;
-            }
-
-            if (Date.now() - startTime > timeout) {
-                reject(new Error('waitFor: Timed out. Predicate shown above'));
-                
-                console.log(predicate);
-                return;
-            }
-            setTimeout(check, interval);
-        };
-        check();
-    });
-}
+DEBUG_MODE = true;
 
 async function getSectionBody(headerXPath, target) {
     safeClick(headerXPath);
@@ -291,7 +231,6 @@ async function getClassData(Alabaster) {
     Alabaster.length = 0; // Clear the passed by referenced array
     medusa = []
 
-    // This ellipsis pushes each element
     await getClassDetailInfo(medusa);
     prereqIndex = await getPreReqInfo(medusa);
 
@@ -370,7 +309,7 @@ async function main() {
 
     /**
      * Storage and retrieval of the catalog in event of a mishap
-     */
+    */
 
     window.addEventListener('beforeunload', () => {
         // Gracefully stop your script
@@ -396,7 +335,7 @@ async function main() {
         pageNum = 1; // Start from the beginning
     }
 
-    try { (async () => {
+    // try { (async () => {
         do {
             // Change the page size to 50
             let elem;
@@ -431,11 +370,11 @@ async function main() {
 
         // Remove from chrome storage
         localStorage.removeItem('catalogTmp');
-    })(); }
-    catch(e) {
-        console.log(e);
-        localStorage.setItem('catalogTmp', classCatalog);
-    }
+    // })(); }
+    // catch(e) {
+    //     console.log(e);
+    //     localStorage.setItem('catalogTmp', classCatalog);
+    // }
 }
 
 main();

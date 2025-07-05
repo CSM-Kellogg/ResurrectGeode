@@ -1,18 +1,26 @@
 console.log("Content script loaded!");
 
-// Can locate input boxes (executed from manifest.json)
-// // Define a regex pattern to match common text fields
-// const fieldPattern = /(search|query|name|subject|course|title|keyword|input|text)/i;
+let weSentUser = null;
 
-// // Get all input fields on the page
-// const inputFields = document.querySelectorAll("input[type='text'], input:not([type])");
+// Event listener for currently if we sent the user to the plan ahead page
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "WE_SENT_USER") {
+        weSentUser = true;
+        console.log("Received WeSentUser in content script:", weSentUser);
+    }
+});
 
-// // Loop through inputs and check if they match the pattern
-// inputFields.forEach((input) => {
-//     const attributes = [input.name, input.id, input.placeholder].join(" ").toLowerCase();
+// If the user ends up where they should
+if (location.pathname == "/StudentRegistrationSsb/ssb/registration/registration" && weSentUser) {
+    console.log('made it!');
     
-//     if (fieldPattern.test(attributes)) {
-//         input.value = "Computer Science";  // Autofill the field
-//         console.log("Filled:", input);
-//     }
-// });
+    // Clear the boolean
+    weSentUser = false;
+}
+
+// If the user ends up at the sign in
+else if (location.pathname.includes('ethosidentity')) {
+    console.log('hi');
+
+    console.log(weSentUser);
+}
