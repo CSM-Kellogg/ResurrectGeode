@@ -27,18 +27,41 @@ document.getElementById('clearStorageCatalog').addEventListener('click', ()=>{
 });
 
 
-document.getElementById("plan-ahead-debug").addEventListener('click', async ()=> {
-
-    // Signal that the user is being directed
-    //let weSentUser = true;
-
+document.getElementById("plan-ahead-debug").addEventListener('click', () => {
     const homeEllucian = 'https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/registration/registration';
-    await chrome.tabs.create({url: homeEllucian});
+    
+    const newPlan = "https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/plan"
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        console.log(tabs);
-        chrome.tabs.sendMessage(tabs[0].id, {
-            type: "WE_SENT_USER"
-        });
-    });
+    // Open the new tab
+    // chrome.tabs.create({ url: homeEllucian }, function (newTab) {
+    //     // Wait until tab finishes loading
+    //     chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
+    //         if (tabId === newTab.id && changeInfo.status === 'complete') {
+    
+    //             // Inject content script into the new tab
+    //             chrome.scripting.executeScript({
+    //                 target: { tabId: tabId },
+    //                 files: ['sendCourses/debug.js']
+    //             });
+    //         }
+    //     });
+    // });
+    
+    fetch(newPlan, {
+        credentials: "include" // sends cookies/session info
+    })
+    .then(res => {
+        chrome.runtime.sendMessage({ type: "log", message: res.text() });
+    })
+    .then(html => {
+        chrome.runtime.sendMessage({ type: "log", message: `HTML: ${html}` });
+        // if (html.includes("login") || html.includes("sign in")) {
+        //     chrome.runtime.sendMessage({ type: "log", message: "User is not logged in" });
+        //     // Prompt or redirect the user to log in
+        // } else {
+        //     chrome.runtime.sendMessage({ type: "log", message: "User is logged in" });
+        //     // Proceed with form submission or next step
+        // }
+    })
+    .catch(err => chrome.runtime.sendMessage({ type: "log", message: `Error checking login status:${err}` }));
 });

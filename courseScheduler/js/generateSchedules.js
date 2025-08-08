@@ -362,9 +362,12 @@ class genSchedule {
                     
                     let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
                     const currChoice = this.choiceIndices[i];
+
+                    // Add a button to let students change the current professor for a section
                     if (section.CRN.length > 1) {
                         header += `(${currChoice + 1}/${section.CRN.length})`;
-                        displayOptionsPopup(cell);
+                        let options = '';
+                        this.choiceIndices = displayOptionsPopup(cell, someSchedule[i], this.choiceIndices);
                     }
 
                     const tooltipInfo = `${header}
