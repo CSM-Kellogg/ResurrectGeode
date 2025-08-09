@@ -246,6 +246,10 @@ class genSchedule {
         if (prevBtn) prevBtn.disabled = shouldDisable;
         if (nextBtn) nextBtn.disabled = shouldDisable;
     }
+
+    updateSchedule() {
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+    }
     
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
@@ -366,8 +370,7 @@ class genSchedule {
                     // Add a button to let students change the current professor for a section
                     if (section.CRN.length > 1) {
                         header += `(${currChoice + 1}/${section.CRN.length})`;
-                        let options = '';
-                        this.choiceIndices = displayOptionsPopup(cell, someSchedule[i], this.choiceIndices);
+                        displayOptionsPopup(cell, someSchedule[i], this.choiceIndices, i);
                     }
 
                     const tooltipInfo = `${header}
