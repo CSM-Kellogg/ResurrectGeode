@@ -42,8 +42,123 @@ class genSchedule {
         this.choiceIndices = [];
     }
 
-    #resetChocies() {
-        this.choiceIndices = new Array(this.savedSchedules[0].length).fill(0);
+    // Displays the schedule -- needs some work.
+    displaySchedule(someSchedule) {
+        if (!someSchedule) {
+            console.log("Likely couldn't generate a schedule for you");
+            return;
+        }
+
+        const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
+        document.querySelectorAll(".schedule-block").forEach(el => el.remove());
+        const colorList = Object.entries(my_colors);
+        const colorMap = new Map();
+        
+        // Creates breaks between classes
+        breakManager.display();
+        
+        // Tooltip to view some class details (events added to schedule blocks)
+        Tooltip.resetToolTip();
+        
+        // Add da colors
+        someSchedule.forEach((section, i) => {
+            const key = section.parentCourse["class name"];
+            if (!colorMap.has(key)) {
+                const color = colorList[i % colorList.length][1];
+                colorMap.set(key, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.8)`);
+            }
+        });
+        
+        let i = 0;
+        for (const section of someSchedule) {
+            // Gets the parent course of the current class and the color to paint this class
+            const key = section.parentCourse["class name"];
+            const color = colorMap.get(key);
+            
+            // Display the schedule block on the schedule grid
+            const [startStr, endStr] = section.meetingRange.split(' - ');
+            const start = this.parseTime(startStr);
+            const end = this.parseTime(endStr);
+            
+            for (const day of section.meetingDays) {
+                const dayIndex = dayMap[day];
+                if (dayIndex === undefined) continue;
+                
+                const startHour = Math.floor(start / 60);
+                const startMin = start % 60;
+                const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
+
+                if (cell) {
+                    const block = document.createElement("div");
+                    
+                    let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
+                    const currChoice = this.choiceIndices[i];
+
+                    // Add a button to let students change the current professor for a section
+                    if (section.CRN.length > 1) {
+                        header += `(${currChoice + 1}/${section.CRN.length})`;
+                        displayOptionsPopup(cell, someSchedule[i], this.choiceIndices, i);
+                    }
+
+                    const tooltipInfo = `${header}
+                    <strong>Section:</strong> ${section.sectionCode[currChoice] || "N/A"}
+                    <strong>CRN:</strong> ${section.CRN[currChoice] || "Unknown"}
+                    <strong>Instructor:</strong> ${section.instructorName[currChoice] || "Unknown"}
+                    <strong>Room:</strong> ${section.room[currChoice] || "TBD"}`;
+
+                    // Adds the tool tip events to a parent element
+                    Tooltip.createTooltipEvents(block, tooltipInfo);
+                    
+                    block.className = "schedule-block";
+                    block.style.backgroundColor = color;
+                    block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
+                    
+                    block.textContent = key;
+                    
+                    cell.appendChild(block);
+                } else {
+                    console.warn(`couldn't find the cell to place a class...`);
+                }
+            }
+
+            i ++;
+        }
+    }
+    
+    // Draws the background of the schedule as a table
+    drawBackground() {
+        const scheduleBody = document.getElementById("scheduleBody");
+        
+        function formatTime(h, m) {
+            const hour = h % 12 === 0 ? 12 : h % 12;
+            const suffix = h < 12 ? "AM" : "PM";
+            return `${hour}:${m.toString().padStart(2, "0")} ${suffix}`;
+        }
+        
+        for (let h = 6; h < 22; h++) {
+            for (let m of [0, 15, 30, 45]) {
+                const row = document.createElement("tr");
+                
+                if (m % 30 === 0) {
+                    const timeCell = document.createElement("td");
+                    timeCell.className = "time-cell";
+                    timeCell.textContent = formatTime(h, m);
+                    timeCell.rowSpan = 2;
+                    row.appendChild(timeCell);
+                }
+                
+                for (let d = 0; d < 5; d++) {
+                    const cell = document.createElement("td");
+                    cell.className = "day-slot";
+                    cell.style.position = 'relative';
+                    cell.dataset.day = d;
+                    cell.dataset.time = `${h}:${m}`;
+                    row.appendChild(cell);
+                }
+                
+                scheduleBody.appendChild(row);
+            }
+        }
     }
     
     // Generates a schedule from courses considering all sections
@@ -218,47 +333,7 @@ class genSchedule {
         this.displaySchedule(validSchedules[0]);
         this.updateCounter();
     }
-    
-    // Next and previous button logic for iterating through available schedules
-    nextSchedule() {
-        if (this.savedSchedules.length === 0) return;
-        this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
-        this.displaySchedule(this.savedSchedules[this.currentIndex]);
-        this.updateCounter();
-    }
-    
-    prevSchedule() {
-        if (this.savedSchedules.length === 0) return;
-        this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
-        this.displaySchedule(this.savedSchedules[this.currentIndex]);
-        this.updateCounter();
-    }
-    
-    // Updates the HTML on the selected schedule as well as the total number of
-    // possible schedules
-    updateCounter() {
-        const counter = document.getElementById("schedule-counter");
-        const prevBtn = document.getElementById("prev-schedule");
-        const nextBtn = document.getElementById("next-schedule");
-        
-        const total = this.savedSchedules.length;
-        let index = this.currentIndex;
-        if (typeof(this.currentIndex) == "number") {
-            index += 1;
-        }
-        
-        if (counter) counter.textContent = `${index} / ${total}`;
-        
-        const shouldDisable = total <= 1;
-        if (prevBtn) prevBtn.disabled = shouldDisable;
-        if (nextBtn) nextBtn.disabled = shouldDisable;
-    }
 
-    // what it does. useful for optionsPopup.js and other future things that modify a schedule
-    updateSchedule() {
-        this.displaySchedule(this.savedSchedules[this.currentIndex]);
-    }
-    
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
         const timeBlocks = [];
@@ -304,6 +379,50 @@ class genSchedule {
         return false; // ✅ No conflicts
     }
     
+    // Next and previous button logic for iterating through available schedules
+    nextSchedule() {
+        if (this.savedSchedules.length === 0) return;
+        this.currentIndex = (this.currentIndex + 1) % this.savedSchedules.length;
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+        this.updateCounter();
+    }
+    
+    prevSchedule() {
+        if (this.savedSchedules.length === 0) return;
+        this.currentIndex = (this.currentIndex - 1 + this.savedSchedules.length) % this.savedSchedules.length;
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+        this.updateCounter();
+    }
+
+    #resetChocies() {
+        this.choiceIndices = new Array(this.savedSchedules[0].length).fill(0);
+    }
+    
+    // Updates the HTML on the selected schedule as well as the total number of
+    // possible schedules
+    updateCounter() {
+        const counter = document.getElementById("schedule-counter");
+        const prevBtn = document.getElementById("prev-schedule");
+        const nextBtn = document.getElementById("next-schedule");
+        
+        const total = this.savedSchedules.length;
+        let index = this.currentIndex;
+        if (typeof(this.currentIndex) == "number") {
+            index += 1;
+        }
+        
+        if (counter) counter.textContent = `${index} / ${total}`;
+        
+        const shouldDisable = total <= 1;
+        if (prevBtn) prevBtn.disabled = shouldDisable;
+        if (nextBtn) nextBtn.disabled = shouldDisable;
+    }
+
+    // what it does. useful for optionsPopup.js and other future things that modify a schedule
+    updateSchedule() {
+        this.displaySchedule(this.savedSchedules[this.currentIndex]);
+    }
+    
     /**
     * Parses AM/PM time into an integer of minutes from midnight (e.g `02:00 PM`)
     * @param {string} timeStr 
@@ -321,125 +440,6 @@ class genSchedule {
         if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
         
         return hour * 60 + minute;
-    }
-    
-    // Displays the schedule -- needs some work.
-    displaySchedule(someSchedule) {
-        if (!someSchedule) {
-            console.log("Likely couldn't generate a schedule for you");
-            return;
-        }
-
-        const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
-        document.querySelectorAll(".schedule-block").forEach(el => el.remove());
-        const colorList = Object.entries(my_colors);
-        const colorMap = new Map();
-        
-        // Creates breaks between classes
-        breakManager.display();
-        
-        // Tooltip to view some class details (events added to schedule blocks)
-        Tooltip.resetToolTip();
-        
-        // Add da colors
-        someSchedule.forEach((section, i) => {
-            const key = section.parentCourse["class name"];
-            if (!colorMap.has(key)) {
-                const color = colorList[i % colorList.length][1];
-                colorMap.set(key, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.8)`);
-            }
-        });
-        
-        let i = 0;
-        for (const section of someSchedule) {
-            // Gets the parent course of the current class and the color to paint this class
-            const key = section.parentCourse["class name"];
-            const color = colorMap.get(key);
-            
-            // Display the schedule block on the schedule grid
-            const [startStr, endStr] = section.meetingRange.split(' - ');
-            const start = this.parseTime(startStr);
-            const end = this.parseTime(endStr);
-            
-            for (const day of section.meetingDays) {
-                const dayIndex = dayMap[day];
-                if (dayIndex === undefined) continue;
-                
-                const startHour = Math.floor(start / 60);
-                const startMin = start % 60;
-                const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
-
-                if (cell) {
-                    const block = document.createElement("div");
-                    
-                    let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
-                    const currChoice = this.choiceIndices[i];
-
-                    // Add a button to let students change the current professor for a section
-                    if (section.CRN.length > 1) {
-                        header += `(${currChoice + 1}/${section.CRN.length})`;
-                        displayOptionsPopup(cell, someSchedule[i], this.choiceIndices, i);
-                    }
-
-                    const tooltipInfo = `${header}
-                    <strong>Section:</strong> ${section.sectionCode[currChoice] || "N/A"}
-                    <strong>CRN:</strong> ${section.CRN[currChoice] || "Unknown"}
-                    <strong>Instructor:</strong> ${section.instructorName[currChoice] || "Unknown"}
-                    <strong>Room:</strong> ${section.room[currChoice] || "TBD"}`;
-
-                    // Adds the tool tip events to a parent element
-                    Tooltip.createTooltipEvents(block, tooltipInfo);
-                    
-                    block.className = "schedule-block";
-                    block.style.backgroundColor = color;
-                    block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
-                    
-                    block.textContent = key;
-                    
-                    cell.appendChild(block);
-                } else {
-                    console.warn(`couldn't find the cell to place a class...`);
-                }
-            }
-
-            i ++;
-        }
-    }
-    
-    // Draws the background of the schedule as a table
-    drawBackground() {
-        const scheduleBody = document.getElementById("scheduleBody");
-        
-        function formatTime(h, m) {
-            const hour = h % 12 === 0 ? 12 : h % 12;
-            const suffix = h < 12 ? "AM" : "PM";
-            return `${hour}:${m.toString().padStart(2, "0")} ${suffix}`;
-        }
-        
-        for (let h = 6; h < 22; h++) {
-            for (let m of [0, 15, 30, 45]) {
-                const row = document.createElement("tr");
-                
-                if (m % 30 === 0) {
-                    const timeCell = document.createElement("td");
-                    timeCell.className = "time-cell";
-                    timeCell.textContent = formatTime(h, m);
-                    timeCell.rowSpan = 2;
-                    row.appendChild(timeCell);
-                }
-                
-                for (let d = 0; d < 5; d++) {
-                    const cell = document.createElement("td");
-                    cell.className = "day-slot";
-                    cell.style.position = 'relative';
-                    cell.dataset.day = d;
-                    cell.dataset.time = `${h}:${m}`;
-                    row.appendChild(cell);
-                }
-                
-                scheduleBody.appendChild(row);
-            }
-        }
     }
 }
 
