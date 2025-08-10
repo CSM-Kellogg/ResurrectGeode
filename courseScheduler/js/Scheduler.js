@@ -1,5 +1,5 @@
 /**
- * Everything gets loaded here.
+ * Everything gets loaded in from here.
  * 
  * Also contains some button events, but not all of them. Not sure if software
  * design principles could be realistically applied.
@@ -43,6 +43,16 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
         return;
     }
     genSchedule.generate(courses);
+});
+
+// Button to generate schedules from a course list
+document.getElementById("export-schedule").addEventListener("click", () => {
+    let foo = genSchedule.exportCurrentSchedule();
+    
+    if (foo == null) {alert("No Schedule could be exported");}
+    else {alert(foo);}
+
+    console.log(foo);
 });
 
 // Button for adding breaks to the schedule.

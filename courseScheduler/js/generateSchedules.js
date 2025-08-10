@@ -160,6 +160,26 @@ class genSchedule {
             }
         }
     }
+
+    // Returns CRNs of the current schedule
+    exportCurrentSchedule() {
+        if (this.choiceIndices.length == 0) {
+            console.log("No schedule can be created");
+            return null;
+        }
+
+        let output = [];
+        for (let i = 0; i < this.choiceIndices.length; i ++) {
+            let tmp = this.savedSchedules[this.currentIndex][i]['CRN'][this.choiceIndices[i]];
+            
+            // Goober! what the bruh dude
+            if (typeof tmp == "string" || tmp instanceof String) tmp = parseInt(tmp);
+            output.push(tmp)
+        }
+
+        console.log(output);
+        return output;
+    }
     
     // Generates a schedule from courses considering all sections
     generate(selectedCourses) {
