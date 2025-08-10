@@ -53,16 +53,4 @@ document.getElementById("plan-ahead-debug").addEventListener('click', () => {
     xmlHttp.open( "GET", homeEllucian, false ); // false for synchronous request
     xmlHttp.send( null );
     console.log( xmlHttp.responseText);
-
-    let tmpURL = chrome.runtime.getURL("dummy.html");
-    
-    chrome.tabs.create({ url: tmpURL }, function(newTab) {
-        chrome.scripting.executeScript({
-            target: { tabId: newTab.id },
-            function: (htmlContent) => {
-                document.body.innerHTML = htmlContent;
-            },
-            args: [xmlHttp.responseText]
-        });
-    });
 });
