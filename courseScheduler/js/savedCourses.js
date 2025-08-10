@@ -1,7 +1,11 @@
-// By: Liam Kellogg
+/**
+ * By: Liam Kellogg
+ * 
+ * A way to save the courses a student has selected. Uses googles local storage
+ */
+
 import { decodeHTML } from "./utils.js";
 import { displayCourseContent } from './coursePopup.js';
-import catalog from "./Catalog.js";
 
 // Is signleton
 class savedCourses {

@@ -1,4 +1,4 @@
-// Displays content of selected course
+// Displays more content of a selected course
 // Collaboration of Liam Kellogg and ChatGPT
 
 // shorthands for subjects (e.g. Communications -> LICM)

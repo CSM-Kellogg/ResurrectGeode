@@ -1,3 +1,10 @@
+/**
+ * By: Grey Garner and ChatGPT
+ * 
+ * Adds breaks to a schedule for students to block out times they don't want class.
+ * breakManager is a singleton class
+ */
+
 export class breakManager {
 
     constructor() {

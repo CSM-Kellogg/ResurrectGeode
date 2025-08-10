@@ -1,3 +1,10 @@
+/**
+ * By: Liam Kellogg, Grey Garner, and ChatGPT
+ * 
+ * A set of useful functions that don't have a place anywhere else, really.
+ */
+
+// Decodes HTML and the special character encoding used in them.
 export function decodeHTML(html) {
     const txt = document.createElement('textarea');
     txt.innerHTML = html;

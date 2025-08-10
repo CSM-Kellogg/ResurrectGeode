@@ -1,3 +1,10 @@
+/**
+ * Everything gets loaded here.
+ * 
+ * Also contains some button events, but not all of them. Not sure if software
+ * design principles could be realistically applied.
+ */
+
 import catalog from './Catalog.js';
 import { displayCourseContent } from './coursePopup.js';
 import savedCourses from './savedCourses.js';
@@ -11,15 +18,15 @@ window.addEventListener("load", (event) => {
     document.getElementById("toggle-break-mode").dispatchEvent(new MouseEvent("click", {bubbles: true}));
     breakManager.editMode = true;
     
-    // Shit uhh... idk a better way
-    // Absolutely DOOKIE-ING on what I learned in 306
+    // Okay... this displays a schedule to each cell in the time table
     const cells = document.querySelectorAll("td.day-slot");
     cells.forEach((cell) => {cell.addEventListener("click", () => {
         genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);
     });});
 });
 
-//wasn't too sure where to put this, you can move it if you would like:)
+// wasn't too sure where to put this, you can move it if you would like:)
+// Buttons for navigating between the next and previous schedules
 document.getElementById("next-schedule").addEventListener("click", () => {
     genSchedule.nextSchedule();
 });
@@ -28,6 +35,7 @@ document.getElementById("prev-schedule").addEventListener("click", () => {
     genSchedule.prevSchedule();
 });
 
+// Button to generate schedules from a course list
 document.getElementById("generate-schedule").addEventListener("click", () => {
     const courses = savedCourses.getActiveCourses();
     if (courses.length === 0) {
@@ -37,6 +45,7 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
     genSchedule.generate(courses);
 });
 
+// Button for adding breaks to the schedule.
 document.getElementById("toggle-break-mode").addEventListener("click", () => {
     breakManager.toggleMode();
     const btn = document.getElementById("toggle-break-mode");
@@ -46,12 +55,13 @@ document.getElementById("toggle-break-mode").addEventListener("click", () => {
     btn.classList.toggle("text-light");
 });
 
+// Button to clear all breaks
 document.getElementById("clear-breaks").addEventListener("click", () => {
     breakManager.clearBreaks();
     genSchedule.displaySchedule(genSchedule.savedSchedules[genSchedule.currentIndex] || []);
 });
 
-
+// Arrow keys for switching between different schedules
 document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight") {
         console.log(event.key)

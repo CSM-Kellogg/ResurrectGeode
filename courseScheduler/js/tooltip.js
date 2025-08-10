@@ -1,5 +1,8 @@
-// Yet another singleton class because the tooltip can only ever be one element
-
+/**
+ * By: Grey Garner and ChatGPT
+ * 
+ * Tooltips! General tooltip class where the content is directly specified as raw HTML
+ */
 
 class Tooltip {
     constructor() {
@@ -21,6 +24,7 @@ class Tooltip {
         this.HTMLObj.style.display = "none";
     }
 
+    // Creates the tooltip and logic for mouse events.
     createTooltipEvents(parent, innerHTML) {
         this.HTMLObj.style.display = "block"; // Toggle display from none to block
 

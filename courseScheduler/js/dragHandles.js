@@ -1,5 +1,6 @@
 // Drag handles By ChatGPT
-// For the dragging between rows
+// For the dragging between panels in the webpage
+
 const topPane = document.getElementById('left-top');
 const dragHandle = document.getElementById('drag-handle');
 const container = document.querySelector('.left-pane');

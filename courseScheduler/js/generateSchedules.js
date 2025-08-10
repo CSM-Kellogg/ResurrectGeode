@@ -1,5 +1,12 @@
-// Another singleton class that generates and saves schedules (also temporarily holds them)
-// By: Liam Kellogg, Grey Garner, and some ChatGPT
+/**
+ * By: Liam Kellogg, Grey Garner, and some ChatGPT
+ * 
+ * A class that generates and displays schedules.
+ * 
+ * savedSchedules keeps the schedules generated for a certain cource list
+ * currentIndex tracks the current schedule the student is viewing
+ * choiceIndices tracks the choices for the merged sections for a class
+ */
 
 import catalog from "./Catalog.js";
 import Tooltip from "./tooltip.js"
@@ -247,6 +254,7 @@ class genSchedule {
         if (nextBtn) nextBtn.disabled = shouldDisable;
     }
 
+    // what it does. useful for optionsPopup.js and other future things that modify a schedule
     updateSchedule() {
         this.displaySchedule(this.savedSchedules[this.currentIndex]);
     }
@@ -292,9 +300,9 @@ class genSchedule {
             }
         }
         
+        // average ChatGPT comment
         return false; // ✅ No conflicts
     }
-    
     
     /**
     * Parses AM/PM time into an integer of minutes from midnight (e.g `02:00 PM`)

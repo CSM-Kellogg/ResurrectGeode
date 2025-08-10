@@ -1,9 +1,10 @@
-import { customSectionParser } from "./utils.js";
-
 /**
-* Mostly by ChatGPT with collaboration from Liam Kellogg and Grey Garner
-* 
+ * Mostly by ChatGPT with collaboration from Liam Kellogg and Grey Garner
+ * 
+ * Parses a catalog from a CSV file to an array. Also has search functionality for keywords.
 */
+
+import { customSectionParser } from "./utils.js";
 
 // Headers for the refactored catalog
 const HEADERS = [

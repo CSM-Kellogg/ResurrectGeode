@@ -84,6 +84,7 @@ export function displayOptionsPopup(parent, sectionListing, currentChoices, inde
     //return currentChoice;
 }
 
+// A seperate function because idk i wanted that
 function updateSelection(tbody, choice) {
     for (let i = 0; i < tbody.children.length; i ++) {
         if (i == choice) {
