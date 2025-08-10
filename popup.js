@@ -1,4 +1,3 @@
-
 // Chat GPT
 // The path that this executes from: https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/classSearch/classSearch
 document.getElementById("DownloadCatalog").addEventListener("click", () => {
@@ -32,25 +31,27 @@ document.getElementById("plan-ahead-debug").addEventListener('click', () => {
     
     const newPlan = "https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/plan"
     
-    // fetch(newPlan, {
-    //     credentials: "include" // sends cookies/session info
-    // })
-    // .then(res => {
-        //     chrome.runtime.sendMessage({ type: "log", message: res.text() });
-    // })
-    // .then(html => {
-        //     chrome.runtime.sendMessage({ type: "log", message: `HTML: ${html}` });
-    //     // if (html.includes("login") || html.includes("sign in")) {
-    //     //     chrome.runtime.sendMessage({ type: "log", message: "User is not logged in" });
-    //     //     // Prompt or redirect the user to log in
-    //     // } else {
-        //     //     chrome.runtime.sendMessage({ type: "log", message: "User is logged in" });
-    //     //     // Proceed with form submission or next step
-    //     // }
-    // })
-    // .catch(err => chrome.runtime.sendMessage({ type: "log", message: `Error checking login status:${err}` }));
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", homeEllucian, false ); // false for synchronous request
+    xmlHttp.open( "GET", newPlan, false ); // false for synchronous request
     xmlHttp.send( null );
+    
+    if (xmlHttp.responseText.match(/<input.*name="SAMLRequest"/)) {
+        console.log("Gotta sign in bruh");
+        
+        const targetURL = chrome.runtime.getURL("dummy.html");
+        chrome.runtime.sendMessage({
+            action: "openOrFocusTab",
+            url: targetURL
+        });
+
+        fs.writeFile(dummy.html, xmlHttp.responseText, (err) => {
+            if (err) {
+                console.error('Error writing file:', err);
+            } else {
+                console.log('File written successfully!');
+            }
+        });
+    }
+    
     console.log( xmlHttp.responseText);
 });
