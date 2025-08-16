@@ -10,6 +10,7 @@ import { displayCourseContent } from './coursePopup.js';
 import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
 import breakManager from './breakManager.js';
+import { exportSchedule } from './scheduleExport.js';
 
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
@@ -47,12 +48,15 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
 
 // Button to generate schedules from a course list
 document.getElementById("export-schedule").addEventListener("click", () => {
-    let foo = genSchedule.exportCurrentSchedule();
+    let courses = genSchedule.exportCurrentSchedule();
     
-    if (foo == null) {alert("No Schedule could be exported");}
-    else {alert(foo);}
-
-    console.log(foo);
+    if (courses == null) {
+        alert("No Schedule could be exported");
+        return 1;
+    }
+    
+    console.log(courses);
+    exportSchedule(courses);
 });
 
 // Button for adding breaks to the schedule.
