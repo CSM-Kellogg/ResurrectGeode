@@ -55,7 +55,6 @@ document.getElementById("export-schedule").addEventListener("click", () => {
         return 1;
     }
     
-    console.log(courses);
     exportSchedule(courses);
 });
 
