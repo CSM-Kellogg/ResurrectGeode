@@ -1,5 +1,5 @@
 // Credit: https://stackoverflow.com/questions/30008114/how-do-i-promisify-native-xhr
-async function makeRequest (method, url, body=null, contentType=null) {
+async function makeRequest (method, url, body=null, contentType=null, headers=null) {
     var xhr = null;
     await new Promise(function (resolve, reject) {
         xhr = new XMLHttpRequest();
@@ -24,6 +24,16 @@ async function makeRequest (method, url, body=null, contentType=null) {
         // Optional Header
         if (contentType != null) {
             xhr.setRequestHeader("Content-Type", contentType);
+        }
+
+        // Optional other headers as JSON object
+        if (headers != null) {
+            let keys = Object.keys(headers);
+            let values = Object.values(headers);
+
+            for (let i = 0; i < keys.length; i ++) {
+                xhr.setRequestHeader(keys[i], values[i]);
+            }
         }
         
         xhr.send(body);
@@ -108,29 +118,29 @@ export async function exportSchedule(CRNs) {
     var tmpPOSTSubmission = `term=202580&courseReferenceNumber=${80084}&section=section`;
     await makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded');
 
-    var debugTermFilter = await makeRequest("GET", ellucian + "/StudentRegistrationSsb/ssb/plan/getPlanEvents?termFilter=");
+    // var debugTermFilter = await makeRequest("GET", ellucian + "/StudentRegistrationSsb/ssb/plan/getPlanEvents?termFilter=");
 
-    console.log(debugTermFilter.responseText);
-
-    // Create a plan
-    var tmpPOSTplanSubmit = JSON.stringify({
-        create: [{
-            headerDescription: "HelloThere",
-            headerComment: "hi there"
-        }]
-    });
-
-    await makeRequest("POST", ellucian + submitPlan, tmpPOSTplanSubmit, 'application/json');
+    // console.log(debugTermFilter.responseText);
 
     // Add a class to the plan
     const tmpPOSTcourseAdd = JSON.stringify({
         create: [{
-            courseReferenceNumber: "80084",
+            courseReferenceNumber: "81141",
+
+            headerDescription: "HelloThere",
+            headerComment: "hi there",
+            
+            partOfTerm: "F01",
+            partOfTermDescription: "Full Term-Fall",
             
             isDeleteAction: false,
             isRegistered: false,
             planStatus: "Pending",
+            campus: null,
             class: "net.hedtech.banner.student.registration.RegistrationStudentRegistrationPlanCourse",
+            college: null,
+            term: "202580",
+            planNumber: null,
 
             selectedPlanAction: {
                 class: "net.hedtech.banner.student.registration.RegistrationPlanAction",
@@ -143,5 +153,11 @@ export async function exportSchedule(CRNs) {
         update: []
     });
 
-    await makeRequest("POST", ellucian + submitPlan, tmpPOSTcourseAdd, 'application/json'); 
+    
+    let tmpHeaders = {
+        "sec-fetch-site": "none",
+        "x-requested-with": "XMLHttpRequest"
+    };
+
+    await makeRequest("POST", ellucian + submitPlan, tmpPOSTcourseAdd, 'application/json', tmpHeaders); 
 }

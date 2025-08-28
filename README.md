@@ -1,64 +1,18 @@
 ### NPM and interactJS
-To save trouble of creating a whole ass js script for draggable UI elements, I have chosen to use interactJS.
-This requires installation on my part, but I don't think it's required for anyone else.
-I hate installing things like this damn
-
-### Some notes:
-Need to redirect people from trailhead to elluciancloud
- --> Or, figure out which is which when uploading a created course load
-
-I would like to do updates on class availability but thats a problem for another day
+I have chosen to use interactJS. This requires installation on my part, but I don't think it's required for anyone else.
 
 ### TODO - One bit at a time
 
-1. Instead of cycling through generated schedules, allow users to drag and drop existing schedules
-   A. I have interactJS setup, should just be a copy-paste of the ".draggable" class on their website with some minor adjustments
-      1. Maybe make a visual aid of possible sections the user can drag the course to
-      
-   B. Allow users to click the class within the schedule window to select different professors / sections
-      1. When the user clicks the class, a lil popup should appear with a table of "section, professor, ratemyprofessor rating"
-      2. Have an option to select section by availability instead
-      3. Eventually, availability will be implemented :p
-   
-2. Retrieve the availability of classes
+ALso in the Issues tab on the Github:
 
-### OLD TODO
+1. Redo the search for courses to use GET and POST requests because ellucian updated and broke the current method of injecting a script and navigating through the website by simulating mouse clicks
 
-#### 1. Create a CSV of all classes: -- 90% DONE
- A. Fix the visual bug of classes being lecture/online - DONE
+2. Figure out the correct payload to send to ellucian to add classes to a students' plan.
 
-##### CSV File format: - DONE
-CRN, isOnline, classType, isFacetoFace, section, department, courseNum (301), class name, credits, pre-reqs, mutual exclusions, courseDescription, professor, professor email, meetingDays, meetingRange, timeOfDay, RoomNum
+3. Figure out if I need some lisencing for using PapaParse and InteractJS.
 
-##### In regards to the collected information: - THE FIX DOESN'T WORK, NEED TO HAVE A BETTER METHOD
- A. Some classes error out, and I would also like a safety net if the webpage times out.
- B. Minor parsing issues, such as the optional s in "prerequisites"
+4. Remove the popup window and separate the functionality to search for courses from the general scheduler page.
 
-#### 2. Searching for courses - 66% DONE
- A. Search for keyword -- searches each row for keyword and returns valid row
- B. search for CRN
- C. Sort the list of courses
+5. Look into pinging ellucian for availability on different classes for the current registration period as well as currently registered classes.
 
-#### 4. The scheduling UI
- A. General display things
-    1. Displaying what classes conflict and when
-    3. Load the schedule ABOVE the table
-    4. Needs the little lines between and time of day - DONE
- B. Ability to block out times
-    1. drag-and-click would be good
- C. Enable/disable courses
- D. Warnings (you need these pre-requisites)
-    1. Maybe a link to degreeWorks or the unofficial transcript
-    2. Is a little yellow warning that can be checked off to resolve
-    3. Maybe a setting to disable warnings
- E. A timeline to show when classes are active
-    1. Condensed timeline for classes that meet at the same time
-    2. More attention to 6 week courses -- Update hasConflict for this
-
-####  RateMyProfessor
- A. Pull data from it when requested
- B. Find stars and a link
-
-#### DEGREE WORKS
- A. select classes not completed from degreeWorks to the schedule
- B. The What-If button functionality
+6. A way to automatically determine the current registration period
