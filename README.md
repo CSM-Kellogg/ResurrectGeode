@@ -1,3 +1,6 @@
+### What this is
+A replacement for the Geode Scheduler with some add-ons
+
 ### NPM and interactJS
 I have chosen to use interactJS. This requires installation on my part, but I don't think it's required for anyone else.
 
