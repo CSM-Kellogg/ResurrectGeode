@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Geode Resurrected",
     "version": "1.0",
-    "description": "Your schedule making savior",
+    "description": "A Schedule Creator",
     "action": {
         "default_popup": "popup.html",
         "default_icon": "icon.png"
@@ -16,7 +16,7 @@
             "js": ["content.js"]
         }
     ],
-    "permissions": ["storage", "activeTab", "scripting", "tabs"],
+    "permissions": ["storage", "tabs"],
     "host_permissions": ["<all_urls>"],
     "web_accessible_resources": [
         {
