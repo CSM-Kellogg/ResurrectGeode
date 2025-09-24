@@ -78,7 +78,9 @@ It all might end up in this payload
         }]
     });
 
-
+Idea:
+1. Inject a js script into the plan creator on ellucian for some plan
+2. send xhr requests using the synchronizer token and other headers (same origin requests)
 
 */
 
@@ -118,46 +120,16 @@ export async function exportSchedule(CRNs) {
     var tmpPOSTSubmission = `term=202580&courseReferenceNumber=${80084}&section=section`;
     await makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded');
 
-    // var debugTermFilter = await makeRequest("GET", ellucian + "/StudentRegistrationSsb/ssb/plan/getPlanEvents?termFilter=");
 
-    // console.log(debugTermFilter.responseText);
-
-    // Add a class to the plan
-    const tmpPOSTcourseAdd = JSON.stringify({
-        create: [{
-            courseReferenceNumber: "81141",
-
-            headerDescription: "HelloThere",
-            headerComment: "hi there",
-            
-            partOfTerm: "F01",
-            partOfTermDescription: "Full Term-Fall",
-            
-            isDeleteAction: false,
-            isRegistered: false,
-            planStatus: "Pending",
-            campus: null,
-            class: "net.hedtech.banner.student.registration.RegistrationStudentRegistrationPlanCourse",
-            college: null,
-            term: "202580",
-            planNumber: null,
-
-            selectedPlanAction: {
-                class: "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                description: null,
-                isDeleteAction: false,
-                planCourseStatus: "Add"
-            }
-        }],
-        destroy: [],
-        update: []
-    });
-
-    
-    let tmpHeaders = {
-        "sec-fetch-site": "none",
-        "x-requested-with": "XMLHttpRequest"
-    };
-
-    await makeRequest("POST", ellucian + submitPlan, tmpPOSTcourseAdd, 'application/json', tmpHeaders); 
+    /**
+     * Instead of making requests here, create a chrome tab and use content.js to handle everything else.
+    */
+    let result = await makeRequest("GET", 'https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/selectPlan');
 }
+
+/* Some Notes
+
+strict-origin-when-cross-origin: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
+ - From HTTPS -> HTTPS
+*/
+
