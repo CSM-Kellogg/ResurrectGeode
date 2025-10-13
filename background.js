@@ -16,20 +16,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 chrome.tabs.create({ url: targetUrl });
             }
         });
-    } else if (message.action === "chrome.tabs") {
-        const m_response = chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            // Check if a tab was found
-            if (tabs.length === 0) {
-                return 0;
-            } else {
-                return tabs[0].id;
-            }
-        });
-
-        if (chrome.tabs == undefined) sendResponse("chrome tabs is undefined");
-
-        sendResponse(m_response);
-
-        return true;
     }
+});
+
+// Reset the sendCourse trigger
+chrome.storage.sync.set({'state': 0}, function() {
+    console.log("The ellucian captain is eepy");
 });

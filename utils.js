@@ -1,4 +1,19 @@
+/**
+ * By: Liam Kellogg and AI
+ * 
+ * This is where a lot of the helper methods and global variables are stored.
+ * This script gets injected into all ellucian webpages but cannot be for all
+ * "chrome://*". That's because of a security thing. So, for the Geode Scheduler,
+ * this has to be manually referenced.
+ */
+
 console.log('utils script loaded');
+
+const states = {
+    SLEEPING: 0,
+    SEND: 1,
+    FANAGLE: 2
+};
 
 // Credit: https://stackoverflow.com/questions/30008114/how-do-i-promisify-native-xhr
 async function makeRequest (method, url, body=null, contentType=null, headers=null) {

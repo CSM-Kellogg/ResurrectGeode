@@ -13,7 +13,8 @@
     "content_scripts": [
         {
             "matches": ["*://reg-prod.mines.elluciancloud.com:*/*"],
-            "js": ["utils.js", "content.js"]
+            "js": ["utils.js", "content.js"],
+            "run-on": "document-idle"
         }
     ],
     "permissions": ["storage", "tabs", "alarms"],
