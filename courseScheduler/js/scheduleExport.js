@@ -47,40 +47,24 @@ Idea:
  */
 
 export async function exportSchedule(CRNs) {
-    // Base website to make our requests to
+    // mmm strings... hungy
     const ellucian = 'https://reg-prod.mines.elluciancloud.com:8118';
+    const termSelect = '/StudentRegistrationSsb/ssb/term/termSelection?mode=plan'
     
-    // The suffix -- different endpoints in the website that navigate to different pages and can make POST requests
-    const login = '/StudentRegistrationSsb/saml/login';
-    const selectPlan = '/StudentRegistrationSsb/ssb/plan/selectPlan';
-    const planCreator = '/StudentRegistrationSsb/ssb/plan/plan';
-    const planItem = '/StudentRegistrationSsb/ssb/plan/addPlanItem';
-    const submitPlan = '/StudentRegistrationSsb/ssb/plan/submitPlan/batch';
-    
-    // Check if the user needs to sign in
-    var xmlLogin = await makeRequest("GET", ellucian + selectPlan); 
-    
-    if (xmlLogin.responseText.match(/<input.*name="SAMLRequest"/)) {
-        alert("Please sign in first");
-        chrome.tabs.create({url: ellucian + login});
-        return true;
-    }
-    
-    // Selects the term for fall(80) 2025
-    await makeRequest("POST", ellucian + "/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202580");
-    
-    // This has the possibility of returning that saml redirect thing
-    var xmlPlanCreator = await makeRequest("GET", ellucian + planCreator);
-    
-    // Send the post with payload (this may be un-needed)
-    var tmpPOSTSubmission = `term=202580&courseReferenceNumber=${80084}&section=section`;
-    await makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded');
+    // Store classes to add to a plan within a JSON object for localStorage
+    // crns are stored as a csv
+    let exportObj = {
+        state: "Navigation",
+        crns: []
+    };
+    CRNs.forEach(element => { exportObj.crns.push(element); });
 
+    chrome.storage.local.set({'schedulePlan': JSON.stringify(exportObj)}, function() {
+        console.log('Courses sent to localStorage');
+    });
 
-    /**
-     * Instead of making requests here, create a chrome tab and use content.js to handle everything else.
-    */
-    let result = await makeRequest("GET", 'https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/selectPlan');
+    // Content.js takes over
+    chrome.tabs.create({url: ellucian + termSelect});
 }
 
 /* Some Notes

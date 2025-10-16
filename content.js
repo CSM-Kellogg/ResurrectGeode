@@ -27,7 +27,28 @@ const endptMap = {
     '/StudentRegistrationSsb/ssb/plan/plan?select=3': 2
 };
 
-function ellucianCaptain() {
+// Retrieve the status of implementing a schedule plan
+let voyagePlan = "helb";
+
+// Credit https://stackoverflow.com/questions/3937000/chrome-extension-accessing-localstorage-in-content-script
+chrome.runtime.sendMessage({action: "getVoyage"}, function(response) {
+    console.log(response.schedulePlan);
+
+    voyagePlan = JSON.parse(response.schedulePlan);
+
+    console.log(`The courses and state:`);
+    console.log(voyagePlan);
+
+    if (voyagePlan == null || voyagePlan.state == "Idle") {
+        console.log("The captain does not concern itself with a voyage.")
+        return;
+    }
+
+    // If the voyage it to be embarked, set sail.
+    ellucianCaptain(voyagePlan);
+});
+
+function ellucianCaptain(voyagePlan) {
     console.log("The captain has been seated");
 
     // Not on elluciancloud page at all
@@ -95,9 +116,3 @@ function ellucianCaptain() {
         default: break;
     }
 }
-
-function main() {
-    ellucianCaptain();
-}
-
-main();
