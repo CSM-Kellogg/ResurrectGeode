@@ -32,7 +32,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
 
         return true;
-    } else {
+    } else if (message.action === "setVoyage") {
+        chrome.storage.local.set({schedulePlan: message.payload}, () => {
+            console.log('Updated the voyage');
+        });
+    }else {
         console.log(`Unknown message sent: ${message}`);
     }
 });

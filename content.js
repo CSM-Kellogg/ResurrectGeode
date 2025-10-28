@@ -32,12 +32,7 @@ let voyagePlan = "helb";
 
 // Credit https://stackoverflow.com/questions/3937000/chrome-extension-accessing-localstorage-in-content-script
 chrome.runtime.sendMessage({action: "getVoyage"}, function(response) {
-    console.log(response.schedulePlan);
-
     voyagePlan = JSON.parse(response.schedulePlan);
-
-    console.log(`The courses and state:`);
-    console.log(voyagePlan);
 
     if (voyagePlan == null || voyagePlan.state == "Idle") {
         console.log("The captain does not concern itself with a voyage.")
@@ -59,17 +54,19 @@ function ellucianCaptain(voyagePlan) {
     // If we are on the plan select, send the post packet
     switch (endptMap[currentEndpt]) {
         case 0:
-            console.log('At the term select. Sending the POST request and clicking the button');
+            if (voyagePlan.state !== "Navigate") return;
 
-            // Selects the term for fall(80) 2025
+            console.log('At the term select. Sending the POST request and navigating to plan select');
+
+            // Selects the term for fall(80) 2025 and redirects the user using window
             makeRequest("POST", ellucian + "/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202580")
             .then(() => {
-                // Click the 'go' button
-                safeClick(document.querySelector('#term-go'));
-                console.log('here');
+                window.location = ellucian + Object.keys(endptMap)[1];
             });
             break;
         case 1:
+            if (voyagePlan.state !== "Navigate") return;
+
             console.log('At plan select, reading current number of plans and creating one');
 
             // Get current plans
@@ -100,19 +97,222 @@ function ellucianCaptain(voyagePlan) {
                 'Accept': 'application/json, text/javascript, */*; q=0.01'
             };
 
-            makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded; charset=UTF-8', secHeaders)
+            // Tmp testings
+            holyBlob = {
+                "create": [
+                    {
+                        "activeIndicator": true,
+                        "attached": false,
+                        "attribute": null,
+                        "authorizationReason": null,
+                        "authorizationRequired": false,
+                        "availableActions": [
+                            {
+                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                                "description": "Add",
+                                "isDeleteAction": false,
+                                "planCourseStatus": "Add"
+                            },
+                            {
+                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                                "description": "Remove",
+                                "isDeleteAction": true,
+                                "planCourseStatus": "Remove"
+                            }
+                        ],
+                        "campus": null,
+                        "class": "net.hedtech.banner.student.registration.RegistrationStudentRegistrationPlanCourse",
+                        "college": null,
+                        "comment": null,
+                        "completionDate": null,
+                        "courseDisplay": "111",
+                        "courseNumber": "111",
+                        "courseReferenceNumber": "81141",
+                        "courseRegistrationStatusDescription": null,
+                        "courseTitle": "CALCULUS FOR SCIENTISTS AND ENGINEERS I",
+                        "creditHours": 4,
+                        "credits": null,
+                        "criticalIndicator": false,
+                        "dataOrigin": null,
+                        "department": null,
+                        "dirty": false,
+                        "dirtyPropertyNames": [],
+                        "durationUnit": null,
+                        "dwAttributeSummary": null,
+                        "dwChoiceDescription": null,
+                        "dwGroupNumber": null,
+                        "dwGroupSelection": false,
+                        "dwUniqueId": null,
+                        "errors": {
+                            "errors": []
+                        },
+                        "gradingMode": "S",
+                        "gradingModeDescription": "Standard Letter",
+                        "id": null,
+                        "instructionalMethod": "TR",
+                        "instructionalMethodDescription": "Face to Face",
+                        "instructors": [],
+                        "isDeleteAction": false,
+                        "isRegistered": false,
+                        "lastModified": null,
+                        "learnerRegStartFromDate": null,
+                        "learnerRegStartToDate": null,
+                        "level": null,
+                        "levelDescription": null,
+                        "lockIndicator": false,
+                        "message": null,
+                        "numberOfUnits": null,
+                        "overrideDurationIndicator": false,
+                        "partOfTerm": "F01",
+                        "partOfTermDescription": "Full Term-Fall",
+                        "partOfTermEndDate": "12/19/2025",
+                        "partOfTermStartDate": "08/25/2025",
+                        "planNumber": null,
+                        "planStatus": "Pending",
+                        "properties": {
+                            "college": null,
+                            "scheduleTypeDescription": "Lecture",
+                            "subject": "MATH",
+                            "criticalIndicator": false,
+                            "planStatus": "Pending",
+                            "section": "B",
+                            "partOfTerm": "F01",
+                            "learnerRegStartToDate": null,
+                            "instructors": [],
+                            "dwAttributeSummary": null,
+                            "overrideDurationIndicator": false,
+                            "courseTitle": "CALCULUS FOR SCIENTISTS AND ENGINEERS I",
+                            "sourceCode": null,
+                            "gradingMode": "S",
+                            "instructionalMethod": "TR",
+                            "durationUnit": null,
+                            "activeIndicator": true,
+                            "isDeleteAction": false,
+                            "sequenceNumber": null,
+                            "courseRegistrationStatusDescription": null,
+                            "level": null,
+                            "instructionalMethodDescription": "Face to Face",
+                            "campus": null,
+                            "registrationCreditHour": null,
+                            "courseReferenceNumber": "81141",
+                            "planNumber": null,
+                            "creditHours": 4,
+                            "dwUniqueId": null,
+                            "scheduleType": "L",
+                            "gradingModeDescription": "Standard Letter",
+                            "partOfTermDescription": "Full Term-Fall",
+                            "isRegistered": false,
+                            "lastModified": null,
+                            "startDate": null,
+                            "registrationStatusDate": null,
+                            "partOfTermStartDate": "08/25/2025",
+                            "levelDescription": null,
+                            "selectedStartEndDate": null,
+                            "credits": null,
+                            "lockIndicator": false,
+                            "partOfTermEndDate": "12/19/2025",
+                            "dwChoiceDescription": null,
+                            "dataOrigin": null,
+                            "term": "202580",
+                            "attribute": null,
+                            "department": null,
+                            "availableActions": [
+                                {
+                                    "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                                    "description": "Add",
+                                    "isDeleteAction": false,
+                                    "planCourseStatus": "Add"
+                                },
+                                {
+                                    "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                                    "description": "Remove",
+                                    "isDeleteAction": true,
+                                    "planCourseStatus": "Remove"
+                                }
+                            ],
+                            "authorizationReason": null,
+                            "dwGroupNumber": null,
+                            "courseNumber": "111",
+                            "selectedPlanAction": {
+                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                                "description": null,
+                                "isDeleteAction": false,
+                                "planCourseStatus": "Add"
+                            },
+                            "tuid": 189040730,
+                            "message": null,
+                            "dwGroupSelection": false,
+                            "numberOfUnits": null,
+                            "authorizationRequired": false,
+                            "learnerRegStartFromDate": null,
+                            "courseDisplay": "111",
+                            "comment": null,
+                            "completionDate": null
+                        },
+                        "registrationCreditHour": null,
+                        "registrationStatusDate": null,
+                        "scheduleType": "L",
+                        "scheduleTypeDescription": "Lecture",
+                        "section": "B",
+                        "selectedPlanAction": {
+                            "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
+                            "description": null,
+                            "isDeleteAction": false,
+                            "planCourseStatus": "Add"
+                        },
+                        "selectedStartEndDate": null,
+                        "sequenceNumber": null,
+                        "sourceCode": null,
+                        "startDate": null,
+                        "subject": "MATH",
+                        "term": "202580",
+                        "tuid": 189040730,
+                        "version": null
+                    }
+                ],
+                "update": [],
+                "destroy": []
+            }
+            
+            makeRequest("POST", "https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/submitPlan/batch", JSON.stringify(holyBlob), 'application/json, text/javascript, */*; q=0.01', secHeaders)
             .then(() => {
-                console.log('getting');
-                makeRequest("GET", 'https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/getPlanEvents?termFilter=', null, null, secHeaders);
+                console.log("done with sending the unholy blob");
             });
 
-            // Submitting plan
+            // End tmp testings
 
+            /*makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded; charset=UTF-8', secHeaders)
+            .then(() => {
+                if (voyagePlan.state === "Navigate") {
+                    voyagePlan.state = "jankyDetour";
+                    chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+                    window.location.reload();
+                } else {
+                    console.log("new state");
 
-            // Naming plan and confirming form submission
+                    safeClick(document.querySelector('#newSummaryInfoLink'));
+                }
+                
+                if (document.querySelector("#summaryInfo") != null) {
+                    return true;
+                } else {
+                    return new Promise(function(resolve, reject) {
+                        let foo = document.querySelector('#newSummaryInfo').style.display;
+
+                        if (foo == '') {
+                            resolve(true);
+                        }
+                    });
+                }
+            }).then(() => {
+                console.log('hi');  
+            });*/
 
             break;
         
-        default: break;
+        default:
+            console.log("How did we get here?");
+
+            break;
     }
 }

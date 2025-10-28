@@ -54,7 +54,7 @@ export async function exportSchedule(CRNs) {
     // Store classes to add to a plan within a JSON object for localStorage
     // crns are stored as a csv
     let exportObj = {
-        state: "Navigation",
+        state: "Navigate",
         crns: []
     };
     CRNs.forEach(element => { exportObj.crns.push(element); });

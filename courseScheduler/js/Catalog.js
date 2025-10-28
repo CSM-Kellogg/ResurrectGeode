@@ -7,11 +7,17 @@
 import { customSectionParser } from "./utils.js";
 
 // Headers for the refactored catalog
+// const HEADERS_OLD = [
+//     "department", "coursenum", "class name", "credits", "pre-reqs",
+//     "mutual exclusions", "coursedescription", "linkedCourses", "campus",
+//     "schedType", "sectionListing"
+// ];
+
 const HEADERS = [
     "department", "coursenum", "class name", "credits", "pre-reqs",
     "mutual exclusions", "coursedescription", "linkedCourses", "campus",
-    "schedType", "sectionListing"
-];
+    "schedType", "sectionListing" 
+]
 
 class Catalog {
     // The file to load the catalog from
@@ -51,6 +57,7 @@ class Catalog {
             // Validate row lengths to be equal to header length
             if (row.length !== HEADERS.length) {
                 console.warn(`Row ${i + 1} length mismatch. Skipping.`, row);
+                console.log(`Row length was ${row.length} whilse header length was ${HEADERS.length}.`);
                 return null;
             }
             
@@ -122,7 +129,6 @@ class Catalog {
                 }
             }
         }
-
         return m_course;
     }
 }

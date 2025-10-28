@@ -49,7 +49,6 @@ class genSchedule {
             return;
         }
 
-        const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
         document.querySelectorAll(".schedule-block").forEach(el => el.remove());
         const colorList = Object.entries(my_colors);
         const colorMap = new Map();
@@ -76,13 +75,13 @@ class genSchedule {
             const color = colorMap.get(key);
             
             // Display the schedule block on the schedule grid
-            const [startStr, endStr] = section.meetingRange.split(' - ');
-            const start = this.parseTime(startStr);
-            const end = this.parseTime(endStr);
+
+            // military time conversion for start and end
+            const [start, end] = section.meetingRange.map((time) => this.parseMilitaryTime(time));
             
-            for (const day of section.meetingDays) {
-                const dayIndex = dayMap[day];
-                if (dayIndex === undefined) continue;
+            //for (const day of section.meetingDays) {
+            for (let dayIndex = 0; dayIndex < section.meetingDays.length; dayIndex ++) {
+                if (section.meetingDays[dayIndex] == false) continue;
                 
                 const startHour = Math.floor(start / 60);
                 const startMin = start % 60;
@@ -204,15 +203,11 @@ class genSchedule {
                         sectionCode,      // e.g. 'A'
                         instructorName,
                         instructorEmail,
-                        rawMeetingDays,   // e.g. 'Monday,Wednesday,Friday' OR 'Monday'
+                        rawMeetingDays,   // e.g. 'true,false,false,true,false' would be monday-thursday
                         rawDates,         // e.g. '08/25/2025,12/19/2025'
-                        rawMeetingRange,  // e.g. '08:00 AM - 08:50 AM,AM,AM'
-                        room              // e.g. 'Brown Building, Room 269'
+                        rawMeetingRange,  // e.g. '1200,1350' (military time)
+                        room              // e.g. 'BB 269'
                     ] = section;
-                    
-                    if (!rawMeetingDays.includes(',')) {
-                        rawMeetingDays += ',';
-                    }
                     
                     return {
                         CRN,
@@ -220,15 +215,8 @@ class genSchedule {
                         instructorName,
                         meetingDays: (rawMeetingDays || '')
                         .split(',')
-                        .map(day => day.trim().toLowerCase())
-                        .map(day => ({
-                            monday: 'M',
-                            tuesday: 'T',
-                            wednesday: 'W',
-                            thursday: 'R',
-                            friday: 'F'
-                        }[day] || '')).join(''),
-                        meetingRange: (rawMeetingRange || '').split(',')[0].trim(),
+                        .map((day) => 'true' === day), // Kept as booleans for now
+                        meetingRange: (rawMeetingRange || '').split(','),
                         room,
                         parentCourse: course
                     };
@@ -269,18 +257,9 @@ class genSchedule {
                         let linkedSection = pCourse['sectionListing'][sectionIndex];
                         
                         allSections[c_index].push({
-                            CRN: linkedcrn,
-                            meetingDays: (linkedSection[5] || '')
-                            .split(',')
-                            .map(day => day.trim().toLowerCase())
-                            .map(day => ({
-                                monday: 'M',
-                                tuesday: 'T',
-                                wednesday: 'W',
-                                thursday: 'R',
-                                friday: 'F'
-                            }[day] || '')).join(''),
-                            meetingRange: linkedSection[7],
+                            CRN: linkedcrn.toString(),
+                            meetingDays: linkedSection[5].split(',').map((day) => day === "true"),
+                            meetingRange: linkedSection[7].split(','),
                             room: linkedSection[8],
                             parentCourse: pCourse,
                         });
@@ -317,6 +296,8 @@ class genSchedule {
         
         // Recursion through a lambda expression...
         // Could be a good standard to have.
+        console.log(allSections);
+
         const recurse = (depth, currentSchedule) => {
             if (depth === allSections.length) { // If we have gone through all sections
                 if (!this.hasConflict(currentSchedule)) { // And no conflict
@@ -349,7 +330,7 @@ class genSchedule {
         this.savedSchedules = validSchedules;
         this.currentIndex = 0;
         this.#resetChocies();
-        
+
         this.displaySchedule(validSchedules[0]);
         this.updateCounter();
     }
@@ -357,41 +338,40 @@ class genSchedule {
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
         const timeBlocks = [];
-        const dayMap = { M: 0, T: 1, W: 2, R: 3, F: 4 };
         
         for (const section of schedule) {
             const days = section.meetingDays;
             const timeRange = section.meetingRange;
             
-            if (!days || !timeRange || !timeRange.includes(" - ")) continue;
+            if (!timeRange) continue;
             
-            const [start, end] = timeRange.split(' - ').map(this.parseTime);
-            
-            for (const dayChar of days) {
-                const day = dayChar;
-                const numericDay = dayMap[day];
-                
+            // Get start and end time for the current section
+            const [start, end] = timeRange.map((timeStr) => this.parseMilitaryTime(timeStr));
+
+            // SHOULD be five booleans for [mon,tue,wed,thu,fri] but idk
+            for (let i = 0; i < days.length; i ++) {
+                if (!days[i]) continue; // Only iterate for meeting days
+
                 // Check for conflict with other courses
                 for (const block of timeBlocks) {
                     if (
-                        block.day === day &&
+                        block.day === i &&
                         Math.max(start, block.start) < Math.min(end, block.end)
                     ) {
-                        return true; // ❌ Conflict with another course
+                        return true; // Conflict with another course
                     }
                 }
-                
+
                 // Check for conflict with break blocks
                 for (const block of breakManager.getBreakBlocks()) {
                     if (
-                        block.day === numericDay &&
+                        block.day === i &&
                         Math.max(start, block.start) < Math.min(end, block.end)
                     ) {
-                        return true; // ❌ Conflict with break
+                        return true; // Conflict with break time
                     }
                 }
-                
-                timeBlocks.push({ day, start, end });
+                timeBlocks.push({ day: i, start, end });
             }
         }
         
@@ -443,6 +423,22 @@ class genSchedule {
         this.displaySchedule(this.savedSchedules[this.currentIndex]);
     }
     
+    /**
+     * 
+     * @param {string} timeStr military time as a string
+     * @returns An integer -- minutes from midnight
+     */
+    parseMilitaryTime(timeStr) {
+        if (timeStr.length != 4) {
+            console.warn('Military time parse cannot be completed with a string that isnt 4 characters');
+            return 0;
+        }
+
+        let hour = parseInt(timeStr.slice(0,2));
+        let minute = parseInt(timeStr.slice(2));
+        return hour * 60 + minute;
+    }
+
     /**
     * Parses AM/PM time into an integer of minutes from midnight (e.g `02:00 PM`)
     * @param {string} timeStr 

@@ -9,12 +9,6 @@
 
 console.log('utils script loaded');
 
-const states = {
-    SLEEPING: 0,
-    SEND: 1,
-    FANAGLE: 2
-};
-
 // Credit: https://stackoverflow.com/questions/30008114/how-do-i-promisify-native-xhr
 async function makeRequest (method, url, body=null, contentType=null, headers=null) {
     var xhr = null;
@@ -67,4 +61,92 @@ function safeClick(DOMelement) {
     } else {
         console.warn('Button not found.');
     }
+}
+
+/**
+ * Wait until the provided predicate function returns true.
+ *
+ * Usage:
+ *   // wait until an element exists
+ *   await waitFor(() => !!document.querySelector('#createPlan'), { timeout: 5000 });
+ *
+ * Parameters:
+ *   - predicate: a function that returns a boolean or a Promise<boolean>.
+ *   - options: { timeout?: number, pollInterval?: number }
+ *
+ * Resolves to true when predicate becomes truthy, or false when the timeout expires.
+ *
+ * @param {() => boolean|Promise<boolean>} predicate
+ * @param {{timeout?: number, pollInterval?: number}} options
+ * @returns {Promise<boolean>}
+ */
+function waitFor(predicate, options = {}) {
+    const { timeout = 5000, pollInterval = 100 } = options;
+
+    if (typeof predicate !== 'function') {
+        return Promise.reject(new TypeError('waitFor: predicate must be a function'));
+    }
+
+    let observer = null;
+    let intervalId = null;
+
+    function checkPredicate() {
+        try {
+            const res = predicate();
+            if (res && typeof res.then === 'function') {
+                // predicate returned a Promise
+                return res.then(Boolean).catch(() => false);
+            }
+            return Promise.resolve(Boolean(res));
+        } catch (err) {
+            return Promise.resolve(false);
+        }
+    }
+
+    return new Promise((resolve) => {
+        // immediate check
+        checkPredicate().then((ok) => {
+            if (ok) {
+                resolve(true);
+                return;
+            }
+
+            // Setup MutationObserver to catch DOM changes quickly
+            try {
+                observer = new MutationObserver(() => {
+                    checkPredicate().then((ok2) => {
+                        if (ok2) {
+                            if (observer) observer.disconnect();
+                            if (intervalId) clearInterval(intervalId);
+                            clearTimeout(timer);
+                            resolve(true);
+                        }
+                    });
+                });
+
+                observer.observe(document.documentElement || document, { childList: true, subtree: true, attributes: true });
+            } catch (e) {
+                // If MutationObserver is not available, fall back to polling only
+                observer = null;
+            }
+
+            // Polling fallback for environments where MutationObserver misses something
+            intervalId = setInterval(() => {
+                checkPredicate().then((ok3) => {
+                    if (ok3) {
+                        if (observer) observer.disconnect();
+                        clearInterval(intervalId);
+                        clearTimeout(timer);
+                        resolve(true);
+                    }
+                });
+            }, pollInterval);
+
+            const timer = setTimeout(() => {
+                if (observer) observer.disconnect();
+                if (intervalId) clearInterval(intervalId);
+                resolve(false);
+            }, timeout);
+        });
+    });
 }
