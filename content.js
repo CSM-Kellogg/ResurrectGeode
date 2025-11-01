@@ -6,6 +6,10 @@ As we proceed
 * 2. Keep track of states - Such as login stuff (make a flowchart)
 * 3. Send requests that are with the header "same-origin"
 * 4. Add a course to a schedule plan
+
+
+MAKE SAFE EXIT SUCH THAT THE voyage doesn't hang in 'detour' or 'Navigate'. Ensure that
+every error point results in an 'idle'
 */
 
 
@@ -17,8 +21,11 @@ console.log("content script loaded");
 
 const ellucian = "https://reg-prod.mines.elluciancloud.com:8118";
 const planItem = '/StudentRegistrationSsb/ssb/plan/addPlanItem';
+const voyageStart = '/StudentRegistrationSsb/ssb/term/termSelection?mode=plan';
+const getPlan = '/StudentRegistrationSsb/ssb/plan/getPlanEvents?termFilter=';
 
 const endptMap = {
+    '/StudentRegistrationSsb/ssb/registration/registration': 100,
     '/StudentRegistrationSsb/ssb/term/termSelection?mode=plan': 0,
     '/StudentRegistrationSsb/ssb/plan/selectPlan': 1,
     '/StudentRegistrationSsb/ssb/plan/plan': 2,
@@ -33,286 +40,143 @@ let voyagePlan = "helb";
 // Credit https://stackoverflow.com/questions/3937000/chrome-extension-accessing-localstorage-in-content-script
 chrome.runtime.sendMessage({action: "getVoyage"}, function(response) {
     voyagePlan = JSON.parse(response.schedulePlan);
-
+    
     if (voyagePlan == null || voyagePlan.state == "Idle") {
         console.log("The captain does not concern itself with a voyage.")
         return;
     }
-
+    
     // If the voyage it to be embarked, set sail.
     ellucianCaptain(voyagePlan);
 });
 
-function ellucianCaptain(voyagePlan) {
+async function ellucianCaptain(voyagePlan) {
     console.log("The captain has been seated");
-
+    
     // Not on elluciancloud page at all
     if (!document.URL.includes(ellucian)) return;
-
+    
     const currentEndpt = document.URL.split(ellucian)[1];
-
+    
     // If we are on the plan select, send the post packet
     switch (endptMap[currentEndpt]) {
+        // Current bug, need to create active session for user
+        case 100:
+        if (voyagePlan.state !== "Navigate") return;
+        
+        console.log("Huh, weird. Since in navigate, moving on by clicking");
+        let planAheadElem = document.querySelector('#planningLink');
+        safeClick(planAheadElem);
+        break;
         case 0:
-            if (voyagePlan.state !== "Navigate") return;
-
-            console.log('At the term select. Sending the POST request and navigating to plan select');
-
-            // Selects the term for fall(80) 2025 and redirects the user using window
-            makeRequest("POST", ellucian + "/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202580")
-            .then(() => {
-                window.location = ellucian + Object.keys(endptMap)[1];
-            });
-            break;
+        if (voyagePlan.state !== "Navigate") return;
+        
+        console.log('At the term select. Sending the POST request and navigating to plan select');
+        
+        // Selects the term for spring(10) 2026 and redirects the user using window
+        makeRequest("POST", ellucian + "/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202610")
+        .then(() => {
+            window.location = ellucian + Object.keys(endptMap)[2];
+        });
+        break;
         case 1:
-            if (voyagePlan.state !== "Navigate") return;
-
-            console.log('At plan select, reading current number of plans and creating one');
-
-            // Get current plans
-            const currentPlans = parseInt(document.querySelector('.plan-count').innerHTML.match(/[0-9]+/g)[0]);
-
-            // Alert the user if no plan can be created
-            if (currentPlans > 2) {
-                console.log('Unable to make a new plan, all slots are filled');
-                alert('Please delete a plan to free up a spot');
-                return;
-            }
-
-            // We can now create a plan!
-            safeClick(document.querySelector('#createPlan'));
-            break;
+        if (voyagePlan.state !== "Navigate") return;
+        
+        console.log('At plan select, reading current number of plans and creating one');
+        
+        // Get current plans
+        const currentPlans = parseInt(document.querySelector('.plan-count').innerHTML.match(/[0-9]+/g)[0]);
+        
+        // Alert the user if no plan can be created
+        if (currentPlans > 2) {
+            console.log('Unable to make a new plan, all slots are filled');
+            alert('Please delete a plan to free up a spot');
+            return;
+        }
+        
+        // We can now create a plan!
+        safeClick(document.querySelector('#createPlan'));
+        break;
         
         case 2:
-            console.log('At course planner, adding courses to plan');
-            
-            // Get x-syncronizer-token
-            var syncToken = document.querySelector('meta[name="synchronizerToken"]').content;
-
+        console.log('At course planner, adding courses to plan');
+        
+        // Get x-syncronizer-token
+        var syncToken = document.querySelector('meta[name="synchronizerToken"]').content;
+        
+        var secHeaders = {
+            "X-Synchronizer-Token": syncToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json, text/javascript, */*; q=0.01'
+        };
+        
+        try {
             // Adding classes
-            var tmpPOSTSubmission = `term=202580&courseReferenceNumber=${81141}&section=section`;
-            var secHeaders = {
-                "X-Synchronizer-Token": syncToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json, text/javascript, */*; q=0.01'
-            };
-
-            // Tmp testings
-            holyBlob = {
-                "create": [
-                    {
-                        "activeIndicator": true,
-                        "attached": false,
-                        "attribute": null,
-                        "authorizationReason": null,
-                        "authorizationRequired": false,
-                        "availableActions": [
-                            {
-                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                                "description": "Add",
-                                "isDeleteAction": false,
-                                "planCourseStatus": "Add"
-                            },
-                            {
-                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                                "description": "Remove",
-                                "isDeleteAction": true,
-                                "planCourseStatus": "Remove"
-                            }
-                        ],
-                        "campus": null,
-                        "class": "net.hedtech.banner.student.registration.RegistrationStudentRegistrationPlanCourse",
-                        "college": null,
-                        "comment": null,
-                        "completionDate": null,
-                        "courseDisplay": "111",
-                        "courseNumber": "111",
-                        "courseReferenceNumber": "81141",
-                        "courseRegistrationStatusDescription": null,
-                        "courseTitle": "CALCULUS FOR SCIENTISTS AND ENGINEERS I",
-                        "creditHours": 4,
-                        "credits": null,
-                        "criticalIndicator": false,
-                        "dataOrigin": null,
-                        "department": null,
-                        "dirty": false,
-                        "dirtyPropertyNames": [],
-                        "durationUnit": null,
-                        "dwAttributeSummary": null,
-                        "dwChoiceDescription": null,
-                        "dwGroupNumber": null,
-                        "dwGroupSelection": false,
-                        "dwUniqueId": null,
-                        "errors": {
-                            "errors": []
-                        },
-                        "gradingMode": "S",
-                        "gradingModeDescription": "Standard Letter",
-                        "id": null,
-                        "instructionalMethod": "TR",
-                        "instructionalMethodDescription": "Face to Face",
-                        "instructors": [],
-                        "isDeleteAction": false,
-                        "isRegistered": false,
-                        "lastModified": null,
-                        "learnerRegStartFromDate": null,
-                        "learnerRegStartToDate": null,
-                        "level": null,
-                        "levelDescription": null,
-                        "lockIndicator": false,
-                        "message": null,
-                        "numberOfUnits": null,
-                        "overrideDurationIndicator": false,
-                        "partOfTerm": "F01",
-                        "partOfTermDescription": "Full Term-Fall",
-                        "partOfTermEndDate": "12/19/2025",
-                        "partOfTermStartDate": "08/25/2025",
-                        "planNumber": null,
-                        "planStatus": "Pending",
-                        "properties": {
-                            "college": null,
-                            "scheduleTypeDescription": "Lecture",
-                            "subject": "MATH",
-                            "criticalIndicator": false,
-                            "planStatus": "Pending",
-                            "section": "B",
-                            "partOfTerm": "F01",
-                            "learnerRegStartToDate": null,
-                            "instructors": [],
-                            "dwAttributeSummary": null,
-                            "overrideDurationIndicator": false,
-                            "courseTitle": "CALCULUS FOR SCIENTISTS AND ENGINEERS I",
-                            "sourceCode": null,
-                            "gradingMode": "S",
-                            "instructionalMethod": "TR",
-                            "durationUnit": null,
-                            "activeIndicator": true,
-                            "isDeleteAction": false,
-                            "sequenceNumber": null,
-                            "courseRegistrationStatusDescription": null,
-                            "level": null,
-                            "instructionalMethodDescription": "Face to Face",
-                            "campus": null,
-                            "registrationCreditHour": null,
-                            "courseReferenceNumber": "81141",
-                            "planNumber": null,
-                            "creditHours": 4,
-                            "dwUniqueId": null,
-                            "scheduleType": "L",
-                            "gradingModeDescription": "Standard Letter",
-                            "partOfTermDescription": "Full Term-Fall",
-                            "isRegistered": false,
-                            "lastModified": null,
-                            "startDate": null,
-                            "registrationStatusDate": null,
-                            "partOfTermStartDate": "08/25/2025",
-                            "levelDescription": null,
-                            "selectedStartEndDate": null,
-                            "credits": null,
-                            "lockIndicator": false,
-                            "partOfTermEndDate": "12/19/2025",
-                            "dwChoiceDescription": null,
-                            "dataOrigin": null,
-                            "term": "202580",
-                            "attribute": null,
-                            "department": null,
-                            "availableActions": [
-                                {
-                                    "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                                    "description": "Add",
-                                    "isDeleteAction": false,
-                                    "planCourseStatus": "Add"
-                                },
-                                {
-                                    "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                                    "description": "Remove",
-                                    "isDeleteAction": true,
-                                    "planCourseStatus": "Remove"
-                                }
-                            ],
-                            "authorizationReason": null,
-                            "dwGroupNumber": null,
-                            "courseNumber": "111",
-                            "selectedPlanAction": {
-                                "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                                "description": null,
-                                "isDeleteAction": false,
-                                "planCourseStatus": "Add"
-                            },
-                            "tuid": 189040730,
-                            "message": null,
-                            "dwGroupSelection": false,
-                            "numberOfUnits": null,
-                            "authorizationRequired": false,
-                            "learnerRegStartFromDate": null,
-                            "courseDisplay": "111",
-                            "comment": null,
-                            "completionDate": null
-                        },
-                        "registrationCreditHour": null,
-                        "registrationStatusDate": null,
-                        "scheduleType": "L",
-                        "scheduleTypeDescription": "Lecture",
-                        "section": "B",
-                        "selectedPlanAction": {
-                            "class": "net.hedtech.banner.student.registration.RegistrationPlanAction",
-                            "description": null,
-                            "isDeleteAction": false,
-                            "planCourseStatus": "Add"
-                        },
-                        "selectedStartEndDate": null,
-                        "sequenceNumber": null,
-                        "sourceCode": null,
-                        "startDate": null,
-                        "subject": "MATH",
-                        "term": "202580",
-                        "tuid": 189040730,
-                        "version": null
-                    }
-                ],
-                "update": [],
-                "destroy": []
+            for (let i = 0; i < voyagePlan.crns.length; i ++) {
+                var tmpPOSTSubmission = `term=202610&courseReferenceNumber=${voyagePlan.crns[i]}&section=section`;
+                await makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded; charset=UTF-8', secHeaders);
             }
             
-            makeRequest("POST", "https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/submitPlan/batch", JSON.stringify(holyBlob), 'application/json, text/javascript, */*; q=0.01', secHeaders)
+            // The exact request here isn't important, just so long as I get some response code in the 200 range
+            var tmpPOSTSubmission = `term=202610&courseReferenceNumber=&section=section`;
+            makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded; charset=UTF-8', secHeaders)
             .then(() => {
-                console.log("done with sending the unholy blob");
-            });
-
-            // End tmp testings
-
-            /*makeRequest("POST", ellucian + planItem, tmpPOSTSubmission, 'application/x-www-form-urlencoded; charset=UTF-8', secHeaders)
-            .then(() => {
+                // After the post to add the course, refresh the page with a new voyage state. This is important to avoid looping.
+                // Then, click the summary info link.
                 if (voyagePlan.state === "Navigate") {
                     voyagePlan.state = "jankyDetour";
                     chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
                     window.location.reload();
                 } else {
                     console.log("new state");
-
-                    safeClick(document.querySelector('#newSummaryInfoLink'));
-                }
-                
-                if (document.querySelector("#summaryInfo") != null) {
-                    return true;
-                } else {
-                    return new Promise(function(resolve, reject) {
-                        let foo = document.querySelector('#newSummaryInfo').style.display;
-
-                        if (foo == '') {
-                            resolve(true);
+                    console.log(voyagePlan.crns);
+                    
+                    // For all CRNs, perform magic
+                    for (let i = 0; i < voyagePlan.crns.length; i ++) {
+                        // Select the popup menu for the first row in the last column (add remove menu) and change the style to block.
+                        let addRemoveMenu = document.querySelector(`#summaryBody > div.grid-wrapper.grid-without-title > div > table > tbody > tr:nth-child(${i+1}) > td:nth-child(8) > select`);
+                        if (addRemoveMenu) {
+                            addRemoveMenu.style.display = 'block';
                         }
-                    });
+                        
+                        // Now, Set the selector to remove
+                        addRemoveMenu.value = 'Remove';
+                        addRemoveMenu.dispatchEvent(new Event('change', {bubbles: true}));
+                    }
                 }
             }).then(() => {
-                console.log('hi');  
-            });*/
-
-            break;
+                // Back to add. This is really fricken janky
+                for (let i = 0; i < voyagePlan.crns.length; i ++) {
+                    let addRemoveMenu = document.querySelector(`#summaryBody > div.grid-wrapper.grid-without-title > div > table > tbody > tr:nth-child(${i+1}) > td:nth-child(8) > select`);
+                    addRemoveMenu.value = 'Add';
+                    addRemoveMenu.dispatchEvent(new Event('change', {bubbles: true})); 
+                }
+            }).then(() => {
+                // Click the save button and let the user continue from there. We can end the voyage too
+                let saveBtn = document.querySelector('#saveButton');
+                saveBtn.dispatchEvent(new Event('click', {bubbles: true}));
+                
+                // End voyage
+                voyagePlan.state = 'Idle';
+                chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+                
+                alert('Give your plan a name and click save');
+            });
+        } catch(e) {
+            // In case of some error, stop the voyage.
+            voyagePlan.state = 'Idle';
+            chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+            
+            console.error(e);
+        }
+        
+        break;
         
         default:
-            console.log("How did we get here?");
-
-            break;
+        console.log("How did we get here? Stopping voyage...");
+        
+        voyagePlan.state = 'Idle';
+        chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+        break;
     }
 }

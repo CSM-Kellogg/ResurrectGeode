@@ -161,6 +161,7 @@ class genSchedule {
     }
 
     // Returns CRNs of the current schedule
+    // REMOVE THIS FOR STATE MANAGER
     exportCurrentSchedule() {
         if (this.choiceIndices.length == 0) {
             console.log("No schedule can be created");
@@ -171,12 +172,11 @@ class genSchedule {
         for (let i = 0; i < this.choiceIndices.length; i ++) {
             let tmp = this.savedSchedules[this.currentIndex][i]['CRN'][this.choiceIndices[i]];
             
-            // Goober! what the bruh dude
+            // Goober!
             if (typeof tmp == "string" || tmp instanceof String) tmp = parseInt(tmp);
             output.push(tmp)
         }
-
-        console.log(output);
+        
         return output;
     }
     

@@ -3,7 +3,7 @@ GET https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/pla
 
 ### Select semester
 
-POST https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202580 HTTP/1.1
+POST https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202610 HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
 ### get the synchronizer token

@@ -1,3 +1,4 @@
+
 // ChatGPT - makes a new tab or re-directs the user to the existing tab.
 // This doesn't prevent multiple instances of the tab being open
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
