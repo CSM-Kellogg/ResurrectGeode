@@ -92,26 +92,35 @@ class Catalog {
     // column in the refactoredCatalog.csv that stores all keywords for a class
     // Also, some score needs to be attributed to each result for sorting reasons
     search(keyword) {
-        const keywords = keyword.toLowerCase().split(/\s+/);
+        let keywords = keyword.toLowerCase().split(/\s+/);
         const searchableFields = ["class name", "department"];
 
         // can search from a set of columns so long as they exist in the catalog data
         let result = this.#catalogData.filter(entry => {
             let congolmerateText = searchableFields
                 .map(field => entry[field])
-                .filter(Boolean)
-                .join(' ');
+                .filter(Boolean);
             
             // Add four letter shorthand
-            congolmerateText += ` ${deptShrtHand[entry["department"]]}`;
-            congolmerateText = congolmerateText.toLowerCase();
+            congolmerateText.push(deptShrtHand[entry["department"]]);
 
             // Add crn and professors
             entry['sectionListing'].forEach((section) => {
-                congolmerateText += ` ${section[0]} ${section[3]}`
+                congolmerateText.push(section[0]);
+                congolmerateText.push(section[3]);
             });
             
-            return keywords.some(keyword => congolmerateText.includes(keyword));
+            congolmerateText = congolmerateText.join(' ').toLowerCase(); // map((elem) => elem.toLowerCase());
+            
+            // var hasMatch = false;
+            // congolmerateText.forEach((blobText) => {
+            //     if (keywords.every((keyword) => blobText.includes(keyword))) {
+            //         hasMatch = true;
+            //         return;
+            //     }
+            // });
+            // return hasMatch;
+            return keywords.every((keyword) => congolmerateText.includes(keyword));
         });
 
         return result;

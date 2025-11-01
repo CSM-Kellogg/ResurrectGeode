@@ -34,6 +34,7 @@ export const deptShrtHand = {
     "Humanities Arts Social Science": "HASS",
     "Materials Science": "MLGN",
     "Mathematics": "MATH",
+    "Mathematics Education": "MAED",
     "Mechanical Engineering": "MEGN",
     "Met & Materials Engnrng": "MTGN",
     "Military Science": "MSGN",
