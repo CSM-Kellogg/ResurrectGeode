@@ -121,6 +121,13 @@ class savedCourses {
                 }
             });
 
+            // In the future, this will hold data for the active schedule in the generate courses window. This is the 
+            // A user can select sections by professor and CRN to limit the number of sections. This is the "lock sections" feature.
+            tableRow.querySelector('td[data="preferences"] button').addEventListener('click', () => {
+                console.log("Make a preferences page god damn")
+                console.log(element);
+            });
+
             tableRow.querySelector('td[data="trash-course"] button').addEventListener('click', () => {
                 this.removeCourse(element);
                 this.updateDisplay(parent); // Call another update

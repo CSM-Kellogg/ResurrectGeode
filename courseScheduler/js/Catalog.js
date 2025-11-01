@@ -4,14 +4,9 @@
  * Parses a catalog from a CSV file to an array. Also has search functionality for keywords.
 */
 
-import { customSectionParser } from "./utils.js";
+import { deptShrtHand, customSectionParser } from "./utils.js";
 
 // Headers for the refactored catalog
-// const HEADERS_OLD = [
-//     "department", "coursenum", "class name", "credits", "pre-reqs",
-//     "mutual exclusions", "coursedescription", "linkedCourses", "campus",
-//     "schedType", "sectionListing"
-// ];
 
 const HEADERS = [
     "department", "coursenum", "class name", "credits", "pre-reqs",
@@ -93,24 +88,31 @@ class Catalog {
     }
 
     // Searches by keyword
+    // Currently, the keyword list is called every time. Ideally, this is some
+    // column in the refactoredCatalog.csv that stores all keywords for a class
+    // Also, some score needs to be attributed to each result for sorting reasons
     search(keyword) {
-        const lcKeyword = keyword.toLowerCase();
-        
-        // keyword by class name for now
-        // Eventually, maintain this sorted list such that it is easier to remove duplicates and it looks nicer
+        const keywords = keyword.toLowerCase().split(/\s+/);
+        const searchableFields = ["class name", "department"];
 
-        let result = this.#catalogData.filter(entry => 
-                entry["class name"]?.toLowerCase().includes(lcKeyword)
-        );
+        // can search from a set of columns so long as they exist in the catalog data
+        let result = this.#catalogData.filter(entry => {
+            let congolmerateText = searchableFields
+                .map(field => entry[field])
+                .filter(Boolean)
+                .join(' ');
+            
+            // Add four letter shorthand
+            congolmerateText += ` ${deptShrtHand[entry["department"]]}`;
+            congolmerateText = congolmerateText.toLowerCase();
 
-        // Doesn't check for duplicates - needs a potential fix
-        if (result.length < 4) {
-            result.push(...this.#catalogData.filter(entry => 
-                entry["department"]?.toLowerCase().includes(lcKeyword))
-            );
-        }
-
-        
+            // Add crn and professors
+            entry['sectionListing'].forEach((section) => {
+                congolmerateText += ` ${section[0]} ${section[3]}`
+            });
+            
+            return keywords.some(keyword => congolmerateText.includes(keyword));
+        });
 
         return result;
     }

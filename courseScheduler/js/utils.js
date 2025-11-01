@@ -4,6 +4,51 @@
  * A set of useful functions that don't have a place anywhere else, really.
  */
 
+// shorthands for subjects (e.g. Communications -> LICM)
+export const deptShrtHand = {
+    "Advanced Manufacturing": "AMFG",
+    "Air Force": "AFGN",
+    "APPLIED MATHEMATICS AND STATISTICS": "AMS",
+    "Biology": "BIOL",
+    "Carbon Capture": "CCUS",
+    "Chemical & Biological Engin": "CBEN",
+    "Civil & Environmental Engin": "CEE",
+    "Chemistry, General": "CHGN",
+    "Chemistry, Geochemistry": "CHGC",
+    "Communications": "LICM",
+    "Computer Science": "CSCI",
+    "Computer Science Education": "CSED",
+    "CSM": "CSM",
+    "Data Science": "DSCI",
+    "Economics and Business": "EBGN",
+    "Engineering Design & Society": "EDS",
+    "Electrical Engineering": "EENG",
+    "Energy": "ENGY",
+    "Finite Element Analysis": "FEGN",
+    "Foreign Language": "LIFL",
+    "Geological Engineering": "GEGN",
+    "Geology": "GEOL",
+    "Geophysical Engineering": "GPGN",
+    "Geochemical Exploration": "GEGX",
+    "Honors Program": "HNRS",
+    "Humanities Arts Social Science": "HASS",
+    "Materials Science": "MLGN",
+    "Mathematics": "MATH",
+    "Mechanical Engineering": "MEGN",
+    "Met & Materials Engnrng": "MTGN",
+    "Military Science": "MSGN",
+    "Mining Engineering": "MNGN",
+    "Music": "LIMU",
+    "Nuclear Engineering": "NUGN",
+    "Petroleum Engineering": "PEGN",
+    "Physical Activities": "PAGN",
+    "Physics": "PHGN",
+    "Robotics": "ROBO",
+    "Science Education": "SCED",
+    "Space Resources": "SPRS",
+    "Systems Courses": "SYGN"
+}
+
 // Decodes HTML and the special character encoding used in them.
 export function decodeHTML(html) {
     const txt = document.createElement('textarea');

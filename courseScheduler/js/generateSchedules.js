@@ -294,10 +294,7 @@ class genSchedule {
         // Stores all valid schedules
         const validSchedules = [];
         
-        // Recursion through a lambda expression...
-        // Could be a good standard to have.
-        console.log(allSections);
-
+        
         const recurse = (depth, currentSchedule) => {
             if (depth === allSections.length) { // If we have gone through all sections
                 if (!this.hasConflict(currentSchedule)) { // And no conflict
@@ -347,6 +344,9 @@ class genSchedule {
             
             // Get start and end time for the current section
             const [start, end] = timeRange.map((timeStr) => this.parseMilitaryTime(timeStr));
+
+            // If the section doesn't have a meeting time kinda ignore it
+            if (start == -1 || end == -1) continue;
 
             // SHOULD be five booleans for [mon,tue,wed,thu,fri] but idk
             for (let i = 0; i < days.length; i ++) {
@@ -430,8 +430,8 @@ class genSchedule {
      */
     parseMilitaryTime(timeStr) {
         if (timeStr.length != 4) {
-            console.warn('Military time parse cannot be completed with a string that isnt 4 characters');
-            return 0;
+            console.warn(`Military time parse cannot be completed with a string that isnt 4 characters: ${timeStr}`);
+            return -1;
         }
 
         let hour = parseInt(timeStr.slice(0,2));
