@@ -2,7 +2,6 @@
 GET https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/selectPlan HTTP/1.1
 
 ### Select semester
-
 POST https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202610 HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 

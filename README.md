@@ -3,7 +3,7 @@ A chrome extension to replace what the GEODE scheduler used to be. Among my peer
 
 
 ### How this works
-The course search and schedule generation is handled by the client with all client data managed by the browser's local storage. This is currently tested on the latest build of chrome.
+The course search and schedule generation is handled by the client with all client data managed by the browser's local storage. It should work on chrome.
 
 #### Where we got the catalog
 The csv at `/courseScheduler/refactoredCatalog.csv` contains course data scraped from `elluciancloud.com`. This was collected using the xhr library and is contained in a separate project. The format for some request is shown below:
@@ -25,13 +25,21 @@ term=202610&courseReferenceNumber=10001&first=first
 ```
 
 #### Installing
-This extension can be loaded and tested by turning developer mode on at `chrome://extensions` and loading an unpacked extension. After the extension is loaded, click the icon to open the web page.
+This extension can be loaded and tested by turning developer mode on at `chrome://extensions` and loading an unpacked extension. After the extension is loaded, click the icon to open the web page. Again, this was only tested in chrome.
 
 #### Add courses and generate schedules
 The upper left box is used to search for courses. Clicking a course adds it to a list of selected courses, and generating a schedule takes all possible permutations of sections within all courses selected to make a list of schedules shown in the right pane.
 
 #### Add a break
-Click the right pane to mark a break start, and click again to mark a break end. For example, clicking Monday 8:00 AM and then clicking wednesday at 10:00 AM will add a break from 8:00 AM to 10:00 AM for Monday, Tuesday, and Wednesday
+Click the right pane to mark a break start, and click again to mark a break end. For example, clicking Monday 8:00 AM and then clicking wednesday at 10:00 AM will add a break from 8:00 AM to 10:00 AM for Monday, Tuesday, and Wednesday. No click-to-drag feature yet.
 
 #### Exporting a schedule
-This is currently in-progress. When done, it will open a new tab to `elluciancloud` and take over the client to add the selected courses within the extension to a new course plan in `elluciancloud`. As far as I understand it, due to active sessions and a `x-synchronizer-token`, this is the best way. I also could not find an API...
+First, go to the sign in page with Okta and create a session (I have only tested this feature with the stay signed in button enabled). The link below should take you there if you don't have an active session. If it doesn't, don't worry about it.
+```
+https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/selectPlan HTTP/1.1
+```
+Next, generate your schedule and click 'export schedule to trailhead.' If your courses aren't loaded in (type Ctrl + Alt + C to view it), that's a bug. Please post an issue to the github page or email me (kellogg@mines.edu).
+
+### Help
+
+If you want to help me polish this project, specifically with the front end to make it look pretty, let me know. 

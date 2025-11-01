@@ -112,14 +112,6 @@ class Catalog {
             
             congolmerateText = congolmerateText.join(' ').toLowerCase(); // map((elem) => elem.toLowerCase());
             
-            // var hasMatch = false;
-            // congolmerateText.forEach((blobText) => {
-            //     if (keywords.every((keyword) => blobText.includes(keyword))) {
-            //         hasMatch = true;
-            //         return;
-            //     }
-            // });
-            // return hasMatch;
             return keywords.every((keyword) => congolmerateText.includes(keyword));
         });
 

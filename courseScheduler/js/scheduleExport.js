@@ -51,6 +51,8 @@ export async function exportSchedule(CRNs) {
     const ellucian = 'https://reg-prod.mines.elluciancloud.com:8118';
     const termSelect = '/StudentRegistrationSsb/ssb/term/termSelection?mode=plan';
     
+    // Check if the user has an active session low key - TODO
+
     // Store classes to add to a plan within a JSON object for localStorage
     // crns are stored as a csv
     let exportObj = {
