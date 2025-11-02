@@ -5,6 +5,9 @@ GET https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/pla
 POST https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/term/search?mode=plan&term=202610 HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
-### get the synchronizer token
-GET https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/plan?select=2 HTTP/1.1
+### Get waitlist info
 
+POST https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/searchResults/getEnrollmentInfo HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+term=202610&courseReferenceNumber=10001

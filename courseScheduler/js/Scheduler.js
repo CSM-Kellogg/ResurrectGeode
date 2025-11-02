@@ -11,6 +11,7 @@ import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
 import breakManager from './breakManager.js';
 import { exportSchedule } from './scheduleExport.js';
+import { getEnrollmentInfo } from './courseAvailability.js';
 
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
@@ -56,6 +57,10 @@ document.getElementById("export-schedule").addEventListener("click", () => {
     }
     
     exportSchedule(courses);
+});
+
+document.getElementById("get-enrollment-info").addEventListener("click", () => {
+    getEnrollmentInfo(10001);
 });
 
 // Button for adding breaks to the schedule.

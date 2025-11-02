@@ -26,17 +26,6 @@ class savedCourses {
         this.parentNode = document.getElementById('saved-courses').children[1];
         this.loadSavedCourses();
     }
-
-    getActiveCourses() {
-        let tmp = [];
-        for (let i = 0; i < this.courseList.length; i ++) {
-            if (this.courseMask[i] == 1) {
-                tmp.push(this.courseList[i]);
-            }
-        }
-
-        return tmp;
-    }
     
     /**
      * 
@@ -136,6 +125,7 @@ class savedCourses {
             parent.appendChild(tableRow);
         });
     }
+
     updateCounter() {
         const counter = document.getElementById("schedule-counter");
         const prevBtn = document.getElementById("prev-schedule");
@@ -151,6 +141,18 @@ class savedCourses {
         if (prevBtn) prevBtn.disabled = shouldDisable;
         if (nextBtn) nextBtn.disabled = shouldDisable;
     }
+    
+    getActiveCourses() {
+        let tmp = [];
+        for (let i = 0; i < this.courseList.length; i ++) {
+            if (this.courseMask[i] == 1) {
+                tmp.push(this.courseList[i]);
+            }
+        }
+
+        return tmp;
+    }
+
     getCourses() {
         return this.courseList;
     }

@@ -110,7 +110,7 @@ class Catalog {
                 congolmerateText.push(section[3]);
             });
             
-            congolmerateText = congolmerateText.join(' ').toLowerCase(); // map((elem) => elem.toLowerCase());
+            congolmerateText = congolmerateText.join(' ').toLowerCase();
             
             return keywords.every((keyword) => congolmerateText.includes(keyword));
         });

@@ -27,8 +27,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 } else { resolve(item); }
             });
         }).then(function(item) {
-            console.log(`Retrieved item -- sending to content script`);
-            console.log(item)
+            // This is debug for me
+            // console.log(`Retrieved item -- sending to content script`);
+            // console.log(item)
             sendResponse(item);
         });
 

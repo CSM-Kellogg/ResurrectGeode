@@ -438,25 +438,6 @@ class genSchedule {
         let minute = parseInt(timeStr.slice(2));
         return hour * 60 + minute;
     }
-
-    /**
-    * Parses AM/PM time into an integer of minutes from midnight (e.g `02:00 PM`)
-    * @param {string} timeStr 
-    * @returns An integer -- minutes from midnight 
-    */
-    parseTime(timeStr) {
-        const cleaned = timeStr.trim().replace(/\s+/g, ' '); // normalize spaces
-        const parts = cleaned.split(' ');
-        if (parts.length < 2) return null; // malformed
-        
-        const [time, modifier] = parts;
-        let [hour, minute] = time.split(':').map(Number);
-        
-        if (modifier.toUpperCase() === 'PM' && hour !== 12) hour += 12;
-        if (modifier.toUpperCase() === 'AM' && hour === 12) hour = 0;
-        
-        return hour * 60 + minute;
-    }
 }
 
 // Export the signleton class
