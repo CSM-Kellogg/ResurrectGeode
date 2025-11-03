@@ -12,6 +12,7 @@ import catalog from "./Catalog.js";
 import Tooltip from "./tooltip.js"
 import breakManager from "./breakManager.js"
 import { displayOptionsPopup } from "./optionsPopup.js";
+import { getEnrollmentInfo } from "./courseAvailability.js";
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -40,6 +41,7 @@ class genSchedule {
         this.savedSchedules = [];
         this.currentIndex = 0;
         this.choiceIndices = [];
+        this.curr_enrollment = {}; 
     }
 
     // Displays the schedule -- needs some work.
@@ -181,7 +183,17 @@ class genSchedule {
     }
     
     // Generates a schedule from courses considering all sections
-    generate(selectedCourses) {
+    async generate(selectedCourses) {
+        await this.getAllEnrollment(selectedCourses); // Get availability for all sections for all courses
+
+        // The enrollment object is the input
+        function isAvailable(someEnrollmentInfo) {
+            if(parseInt(someEnrollmentInfo["Enrollment Seats Available"]) > 0 ||
+                parseInt(someEnrollmentInfo["Waitlist Seats Available"]) > 0) {
+                    return true;
+            }
+        }
+
         const allSections = selectedCourses.map(course => {
             // Some sanitization of input - REPLACE WITH A CHECK FOR NULL AND PROPER PARSING
             let sections = course.sectionListing;
@@ -195,7 +207,10 @@ class genSchedule {
             
             // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
-                if (Array.isArray(section)) {
+                if (!isAvailable(this.curr_enrollment[section[0]])) { // check for availability. I think this may need a toggle like 'enforce enrollment'
+                    console.log(`section unavailable: ${section[0]}`)
+                    return null;
+                } else if (Array.isArray(section)) {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this
                     let [
                         CRN,              // e.g. '82325'
@@ -330,6 +345,32 @@ class genSchedule {
 
         this.displaySchedule(validSchedules[0]);
         this.updateCounter();
+    }
+
+    /**
+     * 
+     * @param {*} selectedCourses courses (rich info, contains list of CRNS)
+     * @returns an object with key CRN to value availability object
+     */
+    async getAllEnrollment(selectedCourses) {
+        // Coursename as key for array
+        //  crn as key for object
+        //      Availability as value
+        let output = {};
+
+        for (let i = 0; i < selectedCourses.length; i ++) {
+            let course = selectedCourses[i];
+            
+            for (let j = 0; j < course.sectionListing.length; j ++) {
+                let crn = course.sectionListing[j][0];
+                output[crn]  = await getEnrollmentInfo(crn);
+            }
+        }
+
+        console.log(output);
+        this.curr_enrollment = output; // Save this to the object.
+
+        return output;
     }
 
     // Helper for generate to check for conflicts in a schedule...

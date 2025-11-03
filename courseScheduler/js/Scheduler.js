@@ -60,7 +60,8 @@ document.getElementById("export-schedule").addEventListener("click", () => {
 });
 
 document.getElementById("get-enrollment-info").addEventListener("click", () => {
-    getEnrollmentInfo(10001);
+    const courses = savedCourses.getActiveCourses();
+    genSchedule.getAllEnrollment(courses);
 });
 
 // Button for adding breaks to the schedule.
