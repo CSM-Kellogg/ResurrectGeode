@@ -12,7 +12,7 @@ import catalog from "./Catalog.js";
 import Tooltip from "./tooltip.js"
 import breakManager from "./breakManager.js"
 import { displayOptionsPopup } from "./optionsPopup.js";
-import { getEnrollmentInfo } from "./courseAvailability.js";
+import { getAllEnrollment } from "./courseAvailability.js";
 
 // The minecraft wool colors btw (new textures)
 let my_colors = {
@@ -184,12 +184,12 @@ class genSchedule {
     
     // Generates a schedule from courses considering all sections
     async generate(selectedCourses) {
-        await this.getAllEnrollment(selectedCourses); // Get availability for all sections for all courses
+        this.curr_enrollment = await getAllEnrollment(selectedCourses); // Get availability for all sections for all courses
 
         // The enrollment object is the input
         function isAvailable(someEnrollmentInfo) {
-            if(parseInt(someEnrollmentInfo["Enrollment Seats Available"]) > 0 ||
-                parseInt(someEnrollmentInfo["Waitlist Seats Available"]) > 0) {
+            if(parseInt(someEnrollmentInfo["Available Seats"]) > 0 ||
+                parseInt(someEnrollmentInfo["Available Waitlist Spots"]) > 0) {
                     return true;
             }
         }
@@ -347,32 +347,6 @@ class genSchedule {
         this.updateCounter();
     }
 
-    /**
-     * 
-     * @param {*} selectedCourses courses (rich info, contains list of CRNS)
-     * @returns an object with key CRN to value availability object
-     */
-    async getAllEnrollment(selectedCourses) {
-        // Coursename as key for array
-        //  crn as key for object
-        //      Availability as value
-        let output = {};
-
-        for (let i = 0; i < selectedCourses.length; i ++) {
-            let course = selectedCourses[i];
-            
-            for (let j = 0; j < course.sectionListing.length; j ++) {
-                let crn = course.sectionListing[j][0];
-                output[crn]  = await getEnrollmentInfo(crn);
-            }
-        }
-
-        console.log(output);
-        this.curr_enrollment = output; // Save this to the object.
-
-        return output;
-    }
-
     // Helper for generate to check for conflicts in a schedule...
     hasConflict(schedule) {
         const timeBlocks = [];
@@ -478,6 +452,10 @@ class genSchedule {
         let hour = parseInt(timeStr.slice(0,2));
         let minute = parseInt(timeStr.slice(2));
         return hour * 60 + minute;
+    }
+
+    getCurrentEnrollment() {
+        return this.curr_enrollment;
     }
 }
 

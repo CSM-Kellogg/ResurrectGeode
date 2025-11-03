@@ -16,6 +16,16 @@ const enrollInfo = '/StudentRegistrationSsb/ssb/searchResults/getEnrollmentInfo'
 }
 
 */
+
+const mapper = {
+    "Enrollment Actual": "Enrolled",
+    "Enrollment Maximum": "Capacity",
+    "Enrollment Seats Available": "Available Seats",
+    "Waitlist Actual": "On waitlist",
+    "Waitlist Capacity": "Waitlist Capacity",
+    "Waitlist Seats Available": "Available Waitlist Spots"
+}
+
 export async function getEnrollmentInfo(CRN) {
     // Make the request
     let xhr = await makeRequest('POST', ellucian + enrollInfo, `term=202610&courseReferenceNumber=${CRN}`, 'application/x-www-form-urlencoded');
@@ -35,7 +45,38 @@ export async function getEnrollmentInfo(CRN) {
         output[a[0]] = a[1];
     });
 
-    //console.log(output);
+    let reducedOutput = Object.keys(output).reduce((newObj, oldKey) => {
+        const newKey = mapper[oldKey] || oldKey;
+        newObj[newKey] = output[oldKey];
+
+        return newObj;
+    }, {});
+
+    return reducedOutput;
+}
+
+// courses is an array with rich info on each course (see invocation in Sheduler.js)
+/**
+ * 
+ * @param {*} courses courses (rich info, contains list of CRNS)
+ * @returns an object with key CRN to value availability object
+ */
+export async function getAllEnrollment(courses) {
+    // Coursename as key for array
+    //  crn as key for object
+    //      Availability as value
+    let output = {};
+
+    for (let i = 0; i < courses.length; i ++) {
+        let course = courses[i];
+        
+        for (let j = 0; j < course.sectionListing.length; j ++) {
+            let crn = course.sectionListing[j][0];
+            output[crn]  = await getEnrollmentInfo(crn);
+        }
+    }
+
+    console.log(output);
 
     return output;
 }

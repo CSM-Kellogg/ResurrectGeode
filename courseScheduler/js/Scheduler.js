@@ -45,6 +45,8 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
         return;
     }
     genSchedule.generate(courses);
+
+    
 });
 
 // Button to generate schedules from a course list
@@ -59,10 +61,10 @@ document.getElementById("export-schedule").addEventListener("click", () => {
     exportSchedule(courses);
 });
 
-document.getElementById("get-enrollment-info").addEventListener("click", () => {
-    const courses = savedCourses.getActiveCourses();
-    genSchedule.getAllEnrollment(courses);
-});
+// document.getElementById("get-enrollment-info").addEventListener("click", () => {
+//     const courses = savedCourses.getActiveCourses();
+//     genSchedule.updateAllEnrollment(courses);
+// });
 
 // Button for adding breaks to the schedule.
 document.getElementById("toggle-break-mode").addEventListener("click", () => {
