@@ -129,7 +129,6 @@ async function ellucianCaptain(voyagePlan) {
                     window.location.reload();
                 } else {
                     console.log("new state");
-                    console.log(voyagePlan.crns);
                     
                     // For all CRNs, perform magic
                     for (let i = 0; i < voyagePlan.crns.length; i ++) {
@@ -173,10 +172,11 @@ async function ellucianCaptain(voyagePlan) {
         break;
         
         default:
-            console.log("How did we get here? Stopping voyage...");
-            
-            voyagePlan.state = 'Idle';
-            chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+        console.log("How did we get here? Stopping voyage...");
+        
+        voyagePlan.state = 'Idle';
+        chrome.runtime.sendMessage({action: "setVoyage", payload: JSON.stringify(voyagePlan)});
+        
         break;
     }
 }

@@ -27,6 +27,9 @@ term=202610&courseReferenceNumber=10001&first=first
 #### Installing
 This extension can be loaded and tested by turning developer mode on at `chrome://extensions` and loading an unpacked extension. After the extension is loaded, click the icon to open the web page. Again, this was only tested in chrome.
 
+### keyword search
+
+
 #### Add courses and generate schedules
 The upper left box is used to search for courses. Clicking a course adds it to a list of selected courses, and generating a schedule takes all possible permutations of sections within all courses selected to make a list of schedules shown in the right pane.
 
