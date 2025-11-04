@@ -97,22 +97,35 @@ class Catalog {
 
         // can search from a set of columns so long as they exist in the catalog data
         let result = this.#catalogData.filter(entry => {
-            let congolmerateText = searchableFields
+            //console.log(entry);
+
+            let conglomerateText = searchableFields
                 .map(field => entry[field])
                 .filter(Boolean);
+            let conglomerateNumber = [];
             
             // Add four letter shorthand
-            congolmerateText.push(deptShrtHand[entry["department"]]);
+            conglomerateText.push(deptShrtHand[entry["department"]]);
+
+            // Add course level number (e.g. 401)
+            conglomerateText.push(entry["coursenum"]);
+
+            conglomerateNumber.push(entry["coursenum"]);
 
             // Add crn and professors
             entry['sectionListing'].forEach((section) => {
-                congolmerateText.push(section[0]);
-                congolmerateText.push(section[3]);
+                conglomerateNumber.push(section[0]); // CRN
+                conglomerateText.push(section[3]); // Professor
             });
             
-            congolmerateText = congolmerateText.join(' ').toLowerCase();
+            conglomerateText = conglomerateText.join(' ').toLowerCase();
+
+            const kwValue = keywords.every((keyword) =>
+                conglomerateText.includes(keyword) ||
+                conglomerateNumber.some((num) => num.match(new RegExp(`^${keyword}`)))
+            );
             
-            return keywords.every((keyword) => congolmerateText.includes(keyword));
+            return kwValue;
         });
 
         return result;

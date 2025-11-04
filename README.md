@@ -43,3 +43,11 @@ Next, generate your schedule and click 'export schedule to trailhead.' If your c
 ### Help
 
 If you want to help me polish this project, specifically with the front end to make it look pretty, let me know. 
+
+
+
+
+### Personal TODO
+Flush out cog menu for selecting sections within courses
+Create a toggle for filtering by course availability
+Display course availability in tooltip pane per CRN

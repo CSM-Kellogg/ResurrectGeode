@@ -76,7 +76,5 @@ export async function getAllEnrollment(courses) {
         }
     }
 
-    console.log(output);
-
     return output;
 }

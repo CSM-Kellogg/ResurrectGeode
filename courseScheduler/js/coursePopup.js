@@ -50,7 +50,6 @@ export async function displayCourseContent(course) {
 
     // Add enrollment
     let enrollmentInfo = await getAllEnrollment([course]);
-    console.log(enrollmentInfo);
 
     addInfo('Section availabilities', '');
     let enrollmentInfoTable = createEnrollmentTable(enrollmentInfo);

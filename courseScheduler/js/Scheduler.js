@@ -11,7 +11,6 @@ import savedCourses from './savedCourses.js';
 import genSchedule from './generateSchedules.js';
 import breakManager from './breakManager.js';
 import { exportSchedule } from './scheduleExport.js';
-import { getEnrollmentInfo } from './courseAvailability.js';
 
 // Dynamically loads in the schedule background
 window.addEventListener("load", (event) => {
@@ -40,11 +39,12 @@ document.getElementById("prev-schedule").addEventListener("click", () => {
 // Button to generate schedules from a course list
 document.getElementById("generate-schedule").addEventListener("click", () => {
     const courses = savedCourses.getActiveCourses();
+    const CRNMask = savedCourses.getActiveCRNs();
     if (courses.length === 0) {
         alert("No courses selected. Add some first.");
         return;
     }
-    genSchedule.generate(courses);
+    genSchedule.generate(courses, CRNMask);
 
     
 });
@@ -135,10 +135,12 @@ document.getElementById('search-form').addEventListener('submit', async function
                 // Display the popup box and add in some event listeners. I
                 // actually don't know what the 'proper' solution is, but I
                 // think that coursePopup shouldn't reference savedCourses.js.
-                const floatBox = displayCourseContent(course);
-                floatBox.querySelector("#add-course-btn").onclick = () => {
-                    savedCourses.addCourse(course); // Is singleton
-                };
+                
+                displayCourseContent(course).then(floatBox => {
+                    floatBox.querySelector("#add-course-btn").onclick = () => {
+                        savedCourses.addCourse(course); // Is singleton
+                    };
+                });
             }, 250);
         });
         

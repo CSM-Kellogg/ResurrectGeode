@@ -6,6 +6,7 @@
 
 import { decodeHTML } from "./utils.js";
 import { displayCourseContent } from './coursePopup.js';
+import sectionSelector from './sectionSelector.js';
 
 // Is signleton
 class savedCourses {
@@ -21,6 +22,8 @@ class savedCourses {
         savedCourses._instance = this;
         this.courseList = [];
         this.courseMask = [];
+        
+        this.CRNMasks = new Object();
 
         // There MUST be a better way of handling this but I am unsure :(
         this.parentNode = document.getElementById('saved-courses').children[1];
@@ -33,12 +36,22 @@ class savedCourses {
      */
     addCourse(course) {
         if (this.courseList.includes(course)) {
-        //if (this.courseList.some(c => c["class name"] === course["class name"])) {
             console.log("course already added");
             return;
         }
+
+        if (!this.CRNMasks) this.CRNMasks = new Object();
+
         this.courseList.push(course);
         this.courseMask.push(1);
+
+        this.CRNMasks[course['class name']] = {};
+        // Store as rich for technical issues in updateDisplay
+        course.sectionListing.forEach((section) => {
+            this.CRNMasks[course['class name']][section[0]] = true;
+        })
+        //this.CRNMasks[course['class name']] = new Array(course.sectionListing.length).fill(true); // Set every section to ON
+        
         this.updateDisplay(this.parentNode);
 
         // Save to chrome storage
@@ -58,8 +71,9 @@ class savedCourses {
         } else {
             this.courseList.splice(atIndex, 1);
             this.courseMask.splice(atIndex, 1);
-            chrome.storage.local.set({ savedCourses: this.courseList }, () => {
-            });
+            delete this.CRNMasks[course['class name']];
+
+            chrome.storage.local.set({ savedCourses: this.courseList }, () => {});
         }
     }
 
@@ -68,6 +82,15 @@ class savedCourses {
             if (result.savedCourses && Array.isArray(result.savedCourses)) {
                 this.courseList = result.savedCourses;
                 this.courseMask = new Array(this.courseList.length).fill(1);
+                
+                // This resets the CRN mask for every course.
+                this.courseList.forEach((course) => {
+                    this.CRNMasks[course['class name']] = {};
+                    course.sectionListing.forEach((section) => {
+                        this.CRNMasks[course['class name']][section[0]] = true;
+                    })
+                });
+                
                 this.updateDisplay(this.parentNode);
             }
         });
@@ -83,6 +106,7 @@ class savedCourses {
         this.courseList.forEach((element, i) => {
 
             // Have to sort out this bug in searchCatalog
+            let className = element['class name'];
             let decoded_name = decodeHTML(element['class name']);
 
             // Retrieve the template
@@ -112,9 +136,33 @@ class savedCourses {
 
             // In the future, this will hold data for the active schedule in the generate courses window. This is the 
             // A user can select sections by professor and CRN to limit the number of sections. This is the "lock sections" feature.
-            tableRow.querySelector('td[data="preferences"] button').addEventListener('click', () => {
-                console.log("Make a preferences page god damn")
-                console.log(element);
+            tableRow.querySelector('td[data="preferences"] button').addEventListener('click', (event) => {
+                // Have a CRN selector as a popup and drag tool that saves the sections students would be willing to take
+                // First, display
+                sectionSelector.createNewPopup(element);
+                // Second, onclick function
+                let i = 0;
+                sectionSelector.getFloatBox().querySelectorAll('tr').forEach((row) => {
+                    // Skip header row
+                    if (i == 0) {
+                        i ++;
+                        return;
+                    }
+                    
+                    let rowCRN = row.childNodes[0].textContent;
+
+                    this.#setSelectedColor(row.childNodes[0], this.CRNMasks[className][rowCRN]);
+
+                    row.addEventListener('click', () => {
+
+                        this.CRNMasks[className][rowCRN] = !this.CRNMasks[className][rowCRN]; // Invert selection
+                        this.#setSelectedColor(row.childNodes[0], this.CRNMasks[className][rowCRN]);
+                    });
+
+                    i ++;
+                });
+                // Third, interface with generateSchedules
+                //console.log(element);
             });
 
             tableRow.querySelector('td[data="trash-course"] button').addEventListener('click', () => {
@@ -124,6 +172,14 @@ class savedCourses {
 
             parent.appendChild(tableRow);
         });
+    }
+
+    #setSelectedColor(DOMElem, state) {
+        if (state) {
+            DOMElem.style.backgroundColor = '#8fcc56';
+        } else {
+            DOMElem.style.backgroundColor = '#cc6056';
+        }
     }
 
     updateCounter() {
@@ -150,6 +206,16 @@ class savedCourses {
             }
         }
 
+        return tmp;
+    }
+
+    getActiveCRNs() {
+        let tmp = [];
+        Object.keys(this.CRNMasks).forEach((className) => {
+            Object.keys(this.CRNMasks[className]).forEach((CRN) => {
+                if (this.CRNMasks[className][CRN]) tmp.push(CRN);
+            });
+        });
         return tmp;
     }
 

@@ -183,7 +183,7 @@ class genSchedule {
     }
     
     // Generates a schedule from courses considering all sections
-    async generate(selectedCourses) {
+    async generate(selectedCourses, CRNMask) {
         this.curr_enrollment = await getAllEnrollment(selectedCourses); // Get availability for all sections for all courses
 
         // The enrollment object is the input
@@ -207,8 +207,13 @@ class genSchedule {
             
             // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
-                if (!isAvailable(this.curr_enrollment[section[0]])) { // check for availability. I think this may need a toggle like 'enforce enrollment'
+                // check for availability. I think this may need a toggle like 'enforce enrollment'
+                if (!isAvailable(this.curr_enrollment[section[0]])) {
                     console.log(`section unavailable: ${section[0]}`)
+                    return null;
+                }
+                // Check against the CRN mask if the user doesn't want to take that section
+                else if(!CRNMask.includes(section[0])) {
                     return null;
                 } else if (Array.isArray(section)) {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this
