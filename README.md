@@ -51,9 +51,7 @@ Next, generate your schedule and click 'export schedule to trailhead.' If your c
 If you want to help me polish this project, specifically with the front end to make it look pretty, let me know. 
 
 
-
-
 ### Personal TODO
-Flush out cog menu for selecting sections within courses
-Create a toggle for filtering by course availability
-Display course availability in tooltip pane per CRN
+1. Secondary click to isolate one section instead of deselecting every section
+2. Professor list in the course popup
+3. Warn the user about what classes are conflicting with each other

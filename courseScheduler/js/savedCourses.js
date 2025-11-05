@@ -159,6 +159,21 @@ class savedCourses {
                         this.#setSelectedColor(row.childNodes[0], this.CRNMasks[className][rowCRN]);
                     });
 
+                    row.addEventListener('contextmenu', () => {
+
+                        console.log('hi u did not finish this')
+                        // Reset isolation filter
+                        if (this.CRNMasks[className][rowCRN]) {
+
+                        }
+                        // Set isolation filter
+                        else {
+                            // Toggle this one on
+                            this.CRNMasks[className][rowCRN] = true;
+                            this.#setSelectedColor(row.childNodes[0], true);
+                        }
+                    });
+
                     i ++;
                 });
                 // Third, interface with generateSchedules
