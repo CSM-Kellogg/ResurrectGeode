@@ -159,17 +159,30 @@ class savedCourses {
                         this.#setSelectedColor(row.childNodes[0], this.CRNMasks[className][rowCRN]);
                     });
 
-                    row.addEventListener('contextmenu', () => {
-
-                        console.log('hi u did not finish this')
-                        // Reset isolation filter
-                        if (this.CRNMasks[className][rowCRN]) {
-
+                    row.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        console.log('test if this works')
+                        // Reset isolation filter, all are now true
+                        if (!this.CRNMasks[className][rowCRN]) {
+                            Object.keys(this.CRNMasks[className]).forEach((CRN) => { this.CRNMasks[className][CRN] = true; });
+                            
+                            row.parentElement.childNodes.forEach((tableRow) => {
+                                this.#setSelectedColor(tableRow.childNodes[0], true);
+                            });
                         }
                         // Set isolation filter
                         else {
-                            // Toggle this one on
+                            // Toggle everything off
+                            Object.keys(this.CRNMasks[className]).forEach((CRN) => {
+                                this.CRNMasks[className][CRN] = false;
+                            });
+
                             this.CRNMasks[className][rowCRN] = true;
+
+                            row.parentElement.childNodes.forEach((tableRow) => {
+                                this.#setSelectedColor(tableRow.childNodes[0], false);
+                            });
+
                             this.#setSelectedColor(row.childNodes[0], true);
                         }
                     });
