@@ -4,21 +4,26 @@
  * Parses a catalog from a CSV file to an array. Also has search functionality for keywords.
 */
 
-import { deptShrtHand, customSectionParser } from "./utils.js";
-
 // Headers for the refactored catalog
 
-const HEADERS = [
-    "department", "coursenum", "class name", "credits", "pre-reqs",
-    "mutual exclusions", "coursedescription", "linkedCourses", "campus",
-    "schedType", "sectionListing" 
-]
+const HEADERS_BY_CRN = [
+    "campus", "mode", "medium", "section", "department", "courseNumber",
+    "className", "credits", "attributes", "meetingTimes", "enrollment",
+    "mutualExclusions", "CrossListedSections", "LinkedSections",
+    "prerequisites", "courseDescription"
+];
+
+const HEADERS_BY_NAME = [
+    "sections", "linked", "keywords", "keynumbers"
+];
 
 class Catalog {
     // The file to load the catalog from
-    #catalogFile = "courseScheduler/refactoredCatalog.csv";
-    // The location in memory for the catalog data
-    #catalogData = [];
+    #catalogByCRNFile = "courseScheduler/catalogCRN.csv";
+    #courseNameReferenceFile = "courseScheduler/courseLookup.csv";
+    // The location in memory for the catalog data (by CRN)
+    #catalogData = {};
+    #searchable = [];
 
     // Singleton design principle.
     constructor() {
@@ -32,59 +37,34 @@ class Catalog {
 
     // Loads in the catalog from file.
     async #loadCatalog() {
-        const res = await fetch(chrome.runtime.getURL(this.#catalogFile));
-        const text = await res.text();
-        
-        // Parse the text blob
-        this.#catalogData = this.#parseCSV(text);
+        this.#catalogData = this.#buildObjFromArray(this.#catalogByCRNFile, HEADERS_BY_CRN);
+        this.#searchable = this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
     }
-    
-    // Parses a CSV using PapaParse
-    #parseCSV(text) {
-        // Parse the text blob using PapaParse
-        const parsed = Papa.parse(text, {
-            header: false,
-            skipEmptyLines: true
-        });
-        
-        // Create a searchable dictionary by column headers
-        const rows = parsed.data.map((row, i) => {
-            // Validate row lengths to be equal to header length
-            if (row.length !== HEADERS.length) {
-                console.warn(`Row ${i + 1} length mismatch. Skipping.`, row);
-                console.log(`Row length was ${row.length} whilse header length was ${HEADERS.length}.`);
-                return null;
+
+    // Builds a JSON object from a nested array using the first column as the key
+    async #buildObjFromArray(fileName, entryKeys) {
+        // Load in the csv with the course name as the first entry
+        const res = await fetch(chrome.runtime.getURL(fileName));
+        const text = await res.text();
+
+        // Build this other object
+        return text.split('\n').map((course) => {
+            let outArray = JSON.parse(course);
+
+            if (Object.keys(entryKeys).length != outArray.length - 1) {
+                console.error("This is bad. The keys to describe the array disagree in length");
+                return {};
             }
-            
-            // The dictionary for a certain row
-            const obj = {};
-            let isLinked = false;
-            HEADERS.forEach((key, j) => {
-                let value = row[j];
 
-                if (key === "sectionListing") {
-                    // Manual ish parser here. Wasn't able to use regex on this one.
-                    const parsed = customSectionParser(value);
-                    value = parsed;
-                } else if (key === "linkedCourses") {
-                    value = JSON.parse('['+value+']');
-                    // Boolean for later
-                    if (value[0] != null) isLinked = true;
-                }
+            let row = new Object();
 
-                obj[key] = value;
+            row[outArray[0]] = outArray.slice(1).reduce((acc, value, index) => {
+                acc[entryKeys[index]] = value;
+                return acc;
             });
 
-            // Distinguish between linked classes in class name
-            if (isLinked) {
-                obj['class name'] += ` (${obj['schedType']})`;
-            }
-
-            return obj;
+            return row;
         });
-
-        // Discard null rows and return
-        return rows.filter(Boolean);
     }
 
     // Searches by keyword
@@ -93,32 +73,13 @@ class Catalog {
     // Also, some score needs to be attributed to each result for sorting reasons
     search(keyword) {
         let keywords = keyword.toLowerCase().split(/\s+/);
-        const searchableFields = ["class name", "department"];
 
         // can search from a set of columns so long as they exist in the catalog data
         let result = this.#catalogData.filter(entry => {
             //console.log(entry);
 
-            let conglomerateText = searchableFields
-                .map(field => entry[field])
-                .filter(Boolean);
-            let conglomerateNumber = [];
-            
-            // Add four letter shorthand
-            conglomerateText.push(deptShrtHand[entry["department"]]);
-
-            // Add course level number (e.g. 401)
-            conglomerateText.push(entry["coursenum"]);
-
-            conglomerateNumber.push(entry["coursenum"]);
-
-            // Add crn and professors
-            entry['sectionListing'].forEach((section) => {
-                conglomerateNumber.push(section[0]); // CRN
-                conglomerateText.push(section[3]); // Professor
-            });
-            
-            conglomerateText = conglomerateText.join(' ').toLowerCase();
+            let conglomerateText = this.#searchable.keywords.filter(Boolean).join(' ');
+            let conglomerateNumber = this.#searchable.keynumbers.filter(Boolean);
 
             const kwValue = keywords.every((keyword) =>
                 conglomerateText.includes(keyword) ||
@@ -137,15 +98,8 @@ class Catalog {
      * @returns The course object or null if not found
      */
     courseFromCRN(crn) {
-        let m_course = null;
-        for (let i = 0; i < this.#catalogData.length; i ++) {
-            for (let j = 0; j < this.#catalogData[i]["sectionListing"].length; j ++) {
-                if (crn == parseInt(this.#catalogData[i]["sectionListing"][j][0])) {
-                    return this.#catalogData[i];
-                }
-            }
-        }
-        return m_course;
+        if (typeof crn === "number") crn = crn.toString();
+        return this.#catalogData[crn];
     }
 }
 
