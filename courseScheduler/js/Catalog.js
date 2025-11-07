@@ -37,8 +37,11 @@ class Catalog {
 
     // Loads in the catalog from file.
     async #loadCatalog() {
-        this.#catalogData = this.#buildObjFromArray(this.#catalogByCRNFile, HEADERS_BY_CRN);
-        this.#searchable = this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
+        this.#catalogData = await this.#buildObjFromArray(this.#catalogByCRNFile, HEADERS_BY_CRN);
+        this.#searchable = await this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
+
+        console.log(this.#catalogData);
+        console.log(this.#searchable);
     }
 
     // Builds a JSON object from a nested array using the first column as the key
@@ -49,10 +52,11 @@ class Catalog {
 
         // Build this other object
         return text.split('\n').map((course) => {
-            let outArray = JSON.parse(course);
+            let outArray = JSON.parse(`[${course}]`);
 
             if (Object.keys(entryKeys).length != outArray.length - 1) {
                 console.error("This is bad. The keys to describe the array disagree in length");
+                console.log()
                 return {};
             }
 
@@ -89,17 +93,24 @@ class Catalog {
             return kwValue;
         });
 
-        return result;
+        return this.toExportFormat(result);
     }
 
     /**
-     * O(n) time to find the course corresponding to a CRN
+     * O(1) time to find the course corresponding to a CRN
      * @param {int} crn  some CRN for a class
      * @returns The course object or null if not found
      */
     courseFromCRN(crn) {
         if (typeof crn === "number") crn = crn.toString();
-        return this.#catalogData[crn];
+        return this.toExportFormat(this.#catalogData[crn]);
+    }
+
+    /**
+     * This is a patch: Go from new to old formatting for the "rich course object"
+     */
+    toExportFormat(newFormatCourse) {
+        return newFormatCourse;
     }
 }
 
