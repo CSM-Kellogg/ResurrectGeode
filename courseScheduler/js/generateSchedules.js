@@ -195,8 +195,9 @@ class genSchedule {
         }
 
         const allSections = selectedCourses.map(course => {
-            // Some sanitization of input - REPLACE WITH A CHECK FOR NULL AND PROPER PARSING
             let sections = course.sectionListing;
+            
+            // Some hand sanitization
             try {
                 if (!Array.isArray(sections)) throw new Error("Parsed sectionListing is not an array.");
             } catch (err) {
@@ -207,13 +208,14 @@ class genSchedule {
             
             // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
+                let sectionCRN = section[0][0] // Taking the first meeting time is OK here.
                 // check for availability. I think this may need a toggle like 'enforce enrollment'
-                if (!isAvailable(this.curr_enrollment[section[0]])) {
-                    console.log(`section unavailable: ${section[0]}`)
+                if (!isAvailable(this.curr_enrollment[sectionCRN])) {
+                    console.log(`section unavailable: ${sectionCRN}`)
                     return null;
                 }
                 // Check against the CRN mask if the user doesn't want to take that section
-                else if(!CRNMask.includes(section[0])) {
+                else if(!CRNMask.includes(sectionCRN)) {
                     return null;
                 } else if (Array.isArray(section)) {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this

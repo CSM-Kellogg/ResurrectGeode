@@ -42,9 +42,9 @@ class sectionSelector {
         let dataObj = {};
         // Format the JSON object to shove into a table
         course.sectionListing.forEach((section) => {
-            let crn = section[0];
+            let crn = section[0][0]; // Take the first meeting time
             let sectionData = {
-                "Professor": section[3]
+                "Professor": section[0][3]
             };
             dataObj[crn] = sectionData;
         });

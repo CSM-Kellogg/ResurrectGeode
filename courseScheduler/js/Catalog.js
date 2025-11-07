@@ -7,14 +7,20 @@
 // Headers for the refactored catalog
 
 const HEADERS_BY_CRN = [
-    "campus", "mode", "medium", "section", "department", "courseNumber",
-    "className", "credits", "attributes", "meetingTimes", "enrollment",
-    "mutualExclusions", "CrossListedSections", "LinkedSections",
-    "prerequisites", "courseDescription"
+    "campus", "schedType", "medium", "section", "department", "coursenum",
+    "class name", "credits", "attributes", "meetingTimes",
+    "mutual exclusions", "CrossListedSections", "linkedCourses",
+    "pre-reqs", "coursedescription"
 ];
 
 const HEADERS_BY_NAME = [
     "sections", "linked", "keywords", "keynumbers"
+];
+
+const HEADERS_OLD = [
+    "department", "coursenum", "class name", "credits", "pre-reqs",
+    "mutual exclusions", "coursedescription", "linkedCourses", "campus",
+    "schedType", 
 ];
 
 class Catalog {
@@ -23,7 +29,7 @@ class Catalog {
     #courseNameReferenceFile = "courseScheduler/courseLookup.csv";
     // The location in memory for the catalog data (by CRN)
     #catalogData = {};
-    #searchable = [];
+    #catalogByName = {};
 
     // Singleton design principle.
     constructor() {
@@ -38,10 +44,9 @@ class Catalog {
     // Loads in the catalog from file.
     async #loadCatalog() {
         this.#catalogData = await this.#buildObjFromArray(this.#catalogByCRNFile, HEADERS_BY_CRN);
-        this.#searchable = await this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
+        this.#catalogByName = await this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
 
-        console.log(this.#catalogData);
-        console.log(this.#searchable);
+        console.log(this.toExportFormat(this.#catalogData['10004']));
     }
 
     // Builds a JSON object from a nested array using the first column as the key
@@ -50,8 +55,11 @@ class Catalog {
         const res = await fetch(chrome.runtime.getURL(fileName));
         const text = await res.text();
 
-        // Build this other object
-        return text.split('\n').map((course) => {
+        // object to return
+        let output = {};
+
+        // Build the object
+        text.split('\n').forEach((course) => {
             let outArray = JSON.parse(`[${course}]`);
 
             if (Object.keys(entryKeys).length != outArray.length - 1) {
@@ -60,15 +68,13 @@ class Catalog {
                 return {};
             }
 
-            let row = new Object();
-
-            row[outArray[0]] = outArray.slice(1).reduce((acc, value, index) => {
-                acc[entryKeys[index]] = value;
-                return acc;
-            });
-
-            return row;
+            output[outArray[0]] = outArray.slice(1).reduce((accumulator={}, value, index) => {
+                accumulator[entryKeys[index]] = value;
+                return accumulator;
+            }, new Object());
         });
+
+        return output;
     }
 
     // Searches by keyword
@@ -79,11 +85,10 @@ class Catalog {
         let keywords = keyword.toLowerCase().split(/\s+/);
 
         // can search from a set of columns so long as they exist in the catalog data
-        let result = this.#catalogData.filter(entry => {
-            //console.log(entry);
+        let result = Object.entries(this.#catalogByName).filter(entry => {
 
-            let conglomerateText = this.#searchable.keywords.filter(Boolean).join(' ');
-            let conglomerateNumber = this.#searchable.keynumbers.filter(Boolean);
+            let conglomerateText = entry[1].keywords.join(' ');
+            let conglomerateNumber = entry[1].keynumbers;
 
             const kwValue = keywords.every((keyword) =>
                 conglomerateText.includes(keyword) ||
@@ -93,7 +98,7 @@ class Catalog {
             return kwValue;
         });
 
-        return this.toExportFormat(result);
+        return result.map((elem) => this.toExportFormat(this.#catalogData[elem[1].sections[0]])); // take the first section from the result
     }
 
     /**
@@ -109,8 +114,38 @@ class Catalog {
     /**
      * This is a patch: Go from new to old formatting for the "rich course object"
      */
-    toExportFormat(newFormatCourse) {
-        return newFormatCourse;
+    toExportFormat(formattedCourse) {
+        let output = {};
+
+        HEADERS_OLD.forEach((header) => {
+            output[header] = formattedCourse[header];
+        });
+
+        // Add the section listing
+        let sectionList = this.#catalogByName[this.#getUniqueName(formattedCourse)].sections;
+
+        let sections = sectionList.map((crn) => {
+            let section = this.#catalogData[crn];
+            let meetingTimes = section.meetingTimes;
+            
+            return meetingTimes.map((meeting) => {
+                return [
+                    crn, section.medium, section.section, meeting[0],
+                    meeting[1], meeting[2].join(','), meeting[3].join(','),
+                    meeting[4].join(','), meeting[5][0] // Fix this issue. this is the index for the room number and its an array?
+                ];
+            });
+        });
+
+        output['sectionListing'] = sections;
+
+        console.log(output);
+
+        return output;
+    }
+
+    #getUniqueName(someCourse) {
+        return `${someCourse['class name']} (${someCourse.schedType})`;
     }
 }
 

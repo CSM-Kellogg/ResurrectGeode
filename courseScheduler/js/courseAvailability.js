@@ -67,13 +67,18 @@ export async function getAllEnrollment(courses) {
     //      Availability as value
     let output = {};
 
-    for (let i = 0; i < courses.length; i ++) {
-        let course = courses[i];
-        
-        for (let j = 0; j < course.sectionListing.length; j ++) {
-            let crn = course.sectionListing[j][0];
-            output[crn]  = await getEnrollmentInfo(crn);
+    try {
+        for (let i = 0; i < courses.length; i ++) {
+            let course = courses[i];
+            
+            for (let j = 0; j < course.sectionListing.length; j ++) {
+                let crn = course.sectionListing[j][0][0]; // Take the first meeting time
+                output[crn]  = await getEnrollmentInfo(crn);
+            }
         }
+    } catch(e) {
+        console.error(e);
+        return null;
     }
 
     return output;

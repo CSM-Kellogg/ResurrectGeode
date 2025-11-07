@@ -4,6 +4,27 @@
 import { deptShrtHand } from "./utils.js";
 import { getAllEnrollment } from "./courseAvailability.js";
 
+function myPromise(timeout, callback) {
+    return new Promise((resolve, reject) => {
+        // Set up the timeout
+        const timer = setTimeout(() => {
+            reject(new Error(`Promise timed out after ${timeout} ms`));
+        }, timeout);
+
+        // Set up the real work
+        callback(
+            (value) => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timer);
+                reject(error);
+            }
+        );
+    });
+}
+
 export async function displayCourseContent(course) {
     // Remove previous floating box if present
     let floatBox = document.getElementById('floating-popup');
@@ -51,9 +72,14 @@ export async function displayCourseContent(course) {
     // Add enrollment
     let enrollmentInfo = await getAllEnrollment([course]);
 
-    addInfo('Section availabilities', '');
-    let enrollmentInfoTable = createEnrollmentTable(enrollmentInfo);
-    infoArea.appendChild(enrollmentInfoTable);
+    if (enrollmentInfo) {
+        // In the success case
+        addInfo('Section availabilities', '');
+        let enrollmentInfoTable = createEnrollmentTable(enrollmentInfo);
+        infoArea.appendChild(enrollmentInfoTable);
+    } else {
+        console.log('Unable to get enrollment information');
+    }
     
     document.body.appendChild(floatBox);
 
