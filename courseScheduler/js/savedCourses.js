@@ -48,7 +48,7 @@ class savedCourses {
         this.CRNMasks[course['class name']] = {};
         // Store as rich for technical issues in updateDisplay
         course.sectionListing.forEach((section) => {
-            this.CRNMasks[course['class name']][section[0]] = true;
+            this.CRNMasks[course['class name']][section[0][0]] = true;
         })
         //this.CRNMasks[course['class name']] = new Array(course.sectionListing.length).fill(true); // Set every section to ON
         
@@ -87,7 +87,7 @@ class savedCourses {
                 this.courseList.forEach((course) => {
                     this.CRNMasks[course['class name']] = {};
                     course.sectionListing.forEach((section) => {
-                        this.CRNMasks[course['class name']][section[0]] = true;
+                        this.CRNMasks[course['class name']][section[0][0]] = true;
                     })
                 });
                 

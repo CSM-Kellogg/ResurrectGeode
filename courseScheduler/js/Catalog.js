@@ -46,7 +46,7 @@ class Catalog {
         this.#catalogData = await this.#buildObjFromArray(this.#catalogByCRNFile, HEADERS_BY_CRN);
         this.#catalogByName = await this.#buildObjFromArray(this.#courseNameReferenceFile, HEADERS_BY_NAME);
 
-        console.log(this.toExportFormat(this.#catalogData['10004']));
+        //console.log(this.toExportFormat(this.#catalogData['10004']));
     }
 
     // Builds a JSON object from a nested array using the first column as the key
@@ -122,7 +122,7 @@ class Catalog {
         });
 
         // Add the section listing
-        let sectionList = this.#catalogByName[this.#getUniqueName(formattedCourse)].sections;
+        let sectionList = this.#catalogByName[formattedCourse['class name']].sections;
 
         let sections = sectionList.map((crn) => {
             let section = this.#catalogData[crn];
@@ -136,16 +136,9 @@ class Catalog {
                 ];
             });
         });
-
         output['sectionListing'] = sections;
 
-        console.log(output);
-
         return output;
-    }
-
-    #getUniqueName(someCourse) {
-        return `${someCourse['class name']} (${someCourse.schedType})`;
     }
 }
 

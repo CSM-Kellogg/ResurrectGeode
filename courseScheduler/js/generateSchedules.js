@@ -75,54 +75,55 @@ class genSchedule {
             // Gets the parent course of the current class and the color to paint this class
             const key = section.parentCourse["class name"];
             const color = colorMap.get(key);
-            
+
             // Display the schedule block on the schedule grid
-
-            // military time conversion for start and end
-            const [start, end] = section.meetingRange.map((time) => this.parseMilitaryTime(time));
-            
-            //for (const day of section.meetingDays) {
-            for (let dayIndex = 0; dayIndex < section.meetingDays.length; dayIndex ++) {
-                if (section.meetingDays[dayIndex] == false) continue;
+            for (let j = 0; j < section.meetingRange.length; j ++) {
+                // military time conversion for start and end
+                const [start, end] = section.meetingRange[j].map((time) => this.parseMilitaryTime(time));
                 
-                const startHour = Math.floor(start / 60);
-                const startMin = start % 60;
-                const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
-
-                if (cell) {
-                    const block = document.createElement("div");
+                //for (const day of section.meetingDays) {
+                for (let dayIndex = 0; dayIndex < section.meetingDays[j].length; dayIndex ++) {
+                    if (section.meetingDays[j][dayIndex] == false) continue;
                     
-                    let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
-                    const currChoice = this.choiceIndices[i];
+                    const startHour = Math.floor(start / 60);
+                    const startMin = start % 60;
+                    const cell = document.querySelector(`[data-day="${dayIndex}"][data-time="${startHour}:${startMin}"]`);
 
-                    // Add a button to let students change the current professor for a section
-                    if (section.CRN.length > 1) {
-                        header += `(${currChoice + 1}/${section.CRN.length})`;
-                        displayOptionsPopup(cell, someSchedule[i], this.choiceIndices, i);
+                    if (cell) {
+                        const block = document.createElement("div");
+                        
+                        let header = `<strong class="mb-1">${section.parentCourse['class name']}</strong>`;
+                        const currChoice = this.choiceIndices[i];
+
+                        // Add a button to let students change the current professor for a section
+                        if (section.CRN[0].length > 1) {
+                            header += `(${currChoice + 1}/${section.CRN[0].length})`;
+                            displayOptionsPopup(cell, someSchedule[i], this.choiceIndices, i);
+                        }
+
+                        const tooltipInfo = `${header}
+                        <strong>Section:</strong> ${section.sectionCode[0][currChoice] || "N/A"}
+                        <strong>CRN:</strong> ${section.CRN[0][currChoice] || "Unknown"}
+                        <strong>Instructor:</strong> ${section.instructorName[0][currChoice] || "Unknown"}
+                        <strong>Room:</strong> ${section.room[0][currChoice] || "TBD"}`;
+
+                        // Adds the tool tip events to a parent element
+                        Tooltip.createTooltipEvents(block, tooltipInfo);
+                        
+                        block.className = "schedule-block";
+                        block.style.backgroundColor = color;
+                        block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
+                        
+                        block.textContent = key;
+                        
+                        cell.appendChild(block);
+                    } else {
+                        console.warn(`couldn't find the cell to place a class...`);
                     }
-
-                    const tooltipInfo = `${header}
-                    <strong>Section:</strong> ${section.sectionCode[currChoice] || "N/A"}
-                    <strong>CRN:</strong> ${section.CRN[currChoice] || "Unknown"}
-                    <strong>Instructor:</strong> ${section.instructorName[currChoice] || "Unknown"}
-                    <strong>Room:</strong> ${section.room[currChoice] || "TBD"}`;
-
-                    // Adds the tool tip events to a parent element
-                    Tooltip.createTooltipEvents(block, tooltipInfo);
-                    
-                    block.className = "schedule-block";
-                    block.style.backgroundColor = color;
-                    block.style.height = ((end - start) / 15) * cell.offsetHeight + "px";
-                    
-                    block.textContent = key;
-                    
-                    cell.appendChild(block);
-                } else {
-                    console.warn(`couldn't find the cell to place a class...`);
                 }
-            }
 
-            i ++;
+                i ++;
+            }
         }
     }
     
@@ -208,7 +209,8 @@ class genSchedule {
             
             // Gets the sections of each classes and stores it in allSections
             return sections.map(section => {
-                let sectionCRN = section[0][0] // Taking the first meeting time is OK here.
+                let sectionCRN = section[0][0]; // Taking the first meeting time is OK here. Shouldn't be a difference
+
                 // check for availability. I think this may need a toggle like 'enforce enrollment'
                 if (!isAvailable(this.curr_enrollment[sectionCRN])) {
                     console.log(`section unavailable: ${sectionCRN}`)
@@ -219,6 +221,7 @@ class genSchedule {
                     return null;
                 } else if (Array.isArray(section)) {
                     // The map keys for our catalog.csv. I Need to have a better way of storing this
+                    // Here is where we merge meeting times
                     let [
                         CRN,              // e.g. '82325'
                         deliveryType,     // e.g. 'Face to Face'
@@ -229,16 +232,19 @@ class genSchedule {
                         rawDates,         // e.g. '08/25/2025,12/19/2025'
                         rawMeetingRange,  // e.g. '1200,1350' (military time)
                         room              // e.g. 'BB 269'
-                    ] = section;
-                    
-                    return {
+                    ] = section[0].map((_, colIndex) => section.map(row => row[colIndex]));
+                    // Source - https://stackoverflow.com/a
+                    // Posted by Fawad Ghafoor, modified by community. See post 'Timeline' for change history
+                    // Retrieved 2025-11-07, License - CC BY-SA 4.0
+
+                    return { // Each variable is N elements long with N is the number of meeting times per section
                         CRN,
                         sectionCode,
                         instructorName,
                         meetingDays: (rawMeetingDays || '')
-                        .split(',')
-                        .map((day) => 'true' === day), // Kept as booleans for now
-                        meetingRange: (rawMeetingRange || '').split(','),
+                        .map(meetingSlot => meetingSlot.split(',') // For each meeting time slot
+                        .map((day) => 'true' === day)), // Kept as booleans for now. This is my string to boolean conversion.
+                        meetingRange: (rawMeetingRange || '').map((meetingSlot) => meetingSlot.split(',')),
                         room,
                         parentCourse: course
                     };
@@ -272,17 +278,19 @@ class genSchedule {
                 let c_index = allSections.length - 1;
                 
                 m_linkedSections.forEach((linkedcrn) => {
-                    let sectionIndex = pCourse['sectionListing'].findIndex(section => section[0] == linkedcrn);
+                    let sectionIndex = pCourse['sectionListing'].findIndex(section => section[0][0] == linkedcrn); // first meeting is fine for CRN
                     if (sectionIndex == -1) { // An error like this should fail silently
                         console.log(`Course ${course['class name']} has a linked section with CRN ${linkedcrn} that doesn't exist.`);
                     } else {
                         let linkedSection = pCourse['sectionListing'][sectionIndex];
                         
                         allSections[c_index].push({
-                            CRN: linkedcrn.toString(),
-                            meetingDays: linkedSection[5].split(',').map((day) => day === "true"),
-                            meetingRange: linkedSection[7].split(','),
-                            room: linkedSection[8],
+                            CRN: linkedSection.map((meeting) => meeting[0]),
+                            instructorName: linkedSection.map((meeting) => meeting[3]),
+                            meetingDays: linkedSection.map((meeting) => meeting[5].split(',').map((day) => day === "true")),
+                            meetingRange: linkedSection.map((meeting) => meeting[7].split(',')),
+                            room: linkedSection.map((meeting) => meeting[8]), // first is not fine but idc
+                            sectionCode: linkedSection.map((meeting) => meeting[2]),
                             parentCourse: pCourse,
                         });
                     }
@@ -315,7 +323,6 @@ class genSchedule {
         
         // Stores all valid schedules
         const validSchedules = [];
-        
         
         const recurse = (depth, currentSchedule) => {
             if (depth === allSections.length) { // If we have gone through all sections
@@ -355,45 +362,49 @@ class genSchedule {
     }
 
     // Helper for generate to check for conflicts in a schedule...
+    // wait this is so broken you have to go by class not ALL SECTIONS
     hasConflict(schedule) {
         const timeBlocks = [];
         
         for (const section of schedule) {
             const days = section.meetingDays;
-            const timeRange = section.meetingRange;
+            const timeRanges = section.meetingRange;
             
-            if (!timeRange) continue;
+            if (!timeRanges) continue;
             
-            // Get start and end time for the current section
-            const [start, end] = timeRange.map((timeStr) => this.parseMilitaryTime(timeStr));
+            for (let i = 0; i < timeRanges.length; i ++) {
+                // Get start and end time for the current section
+                const [start, end] = timeRanges[i].map((timeStr) => this.parseMilitaryTime(timeStr));
 
-            // If the section doesn't have a meeting time kinda ignore it
-            if (start == -1 || end == -1) continue;
+                // If the section doesn't have a meeting time kinda ignore it
+                if (start == -1 || end == -1) continue;
 
-            // SHOULD be five booleans for [mon,tue,wed,thu,fri] but idk
-            for (let i = 0; i < days.length; i ++) {
-                if (!days[i]) continue; // Only iterate for meeting days
+                // SHOULD be five booleans for [mon,tue,wed,thu,fri] but idk
+                for (let j = 0; j < days[i].length; j ++) {
+                    if (!days[i][j]) continue; // Only iterate for meeting days
 
-                // Check for conflict with other courses
-                for (const block of timeBlocks) {
-                    if (
-                        block.day === i &&
-                        Math.max(start, block.start) < Math.min(end, block.end)
-                    ) {
-                        return true; // Conflict with another course
+                    // Check for conflict with other courses
+                    for (const block of timeBlocks) {
+                        if (
+                            block.day === j &&
+                            Math.max(start, block.start) < Math.min(end, block.end)
+                        ) {
+                            return true; // Conflict with another course
+                        }
                     }
-                }
 
-                // Check for conflict with break blocks
-                for (const block of breakManager.getBreakBlocks()) {
-                    if (
-                        block.day === i &&
-                        Math.max(start, block.start) < Math.min(end, block.end)
-                    ) {
-                        return true; // Conflict with break time
+                    // Check for conflict with break blocks
+                    for (const block of breakManager.getBreakBlocks()) {
+                        if (
+                            block.day === j &&
+                            Math.max(start, block.start) < Math.min(end, block.end)
+                        ) {
+                            console.log('here');
+                            return true; // Conflict with break time
+                        }
                     }
+                    timeBlocks.push({ day: j, start, end });
                 }
-                timeBlocks.push({ day: i, start, end });
             }
         }
         
