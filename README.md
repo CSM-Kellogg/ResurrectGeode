@@ -4,6 +4,7 @@ A chrome extension to replace what the GEODE scheduler used to be. Among my peer
 
 ### How this works
 The course search and schedule generation is handled by the client with all client data managed by the browser's local storage. It should work on chrome.
+Also a presentation is linked here: `https://docs.google.com/presentation/d/1C32CcvfkpAuc3dAfhGyBsH0YPzLTFJVNQizA4JooqcU/edit?usp=sharing`
 
 #### Where we got the catalog
 The csv at `/courseScheduler/refactoredCatalog.csv` contains course data scraped from `elluciancloud.com`. This was collected using the xhr library and is contained in a separate project. The format for some request is shown below:
