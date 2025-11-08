@@ -132,10 +132,10 @@ class Catalog {
                 return [
                     crn, section.medium, section.section, meeting[0],
                     meeting[1], meeting[2].join(','), meeting[3].join(','),
-                    meeting[4].join(','), meeting[5][0] // Fix this issue. this is the index for the room number and its an array?
+                    meeting[4].join(','), meeting[5][0]
                 ];
             });
-        });
+        }).filter((item) => item.length > 0);
         output['sectionListing'] = sections;
 
         return output;

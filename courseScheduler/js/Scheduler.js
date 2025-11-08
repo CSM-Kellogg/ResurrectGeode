@@ -129,6 +129,8 @@ document.getElementById('search-form').addEventListener('submit', async function
         button.addEventListener("click", () => {
             if (clickTimer !== null) return;
             
+            console.log(course);
+
             clickTimer = setTimeout(() => {
                 clickTimer = null;
                 
