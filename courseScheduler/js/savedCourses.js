@@ -49,8 +49,7 @@ class savedCourses {
         // Store as rich for technical issues in updateDisplay
         course.sectionListing.forEach((section) => {
             this.CRNMasks[course['class name']][section[0][0]] = true;
-        })
-        //this.CRNMasks[course['class name']] = new Array(course.sectionListing.length).fill(true); // Set every section to ON
+        });
         
         this.updateDisplay(this.parentNode);
 

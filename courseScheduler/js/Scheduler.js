@@ -44,7 +44,10 @@ document.getElementById("generate-schedule").addEventListener("click", () => {
         alert("No courses selected. Add some first.");
         return;
     }
-    genSchedule.generate(courses, CRNMask);
+
+    const getAvailability = document.querySelector('#course-availability-switch').checked;
+
+    genSchedule.generate(courses, CRNMask, getAvailability);
 
     
 });
@@ -60,11 +63,6 @@ document.getElementById("export-schedule").addEventListener("click", () => {
     
     exportSchedule(courses);
 });
-
-// document.getElementById("get-enrollment-info").addEventListener("click", () => {
-//     const courses = savedCourses.getActiveCourses();
-//     genSchedule.updateAllEnrollment(courses);
-// });
 
 // Button for adding breaks to the schedule.
 document.getElementById("toggle-break-mode").addEventListener("click", () => {
@@ -128,8 +126,6 @@ document.getElementById('search-form').addEventListener('submit', async function
         // Event listeners to display more info on each course
         button.addEventListener("click", () => {
             if (clickTimer !== null) return;
-            
-            console.log(course);
 
             clickTimer = setTimeout(() => {
                 clickTimer = null;

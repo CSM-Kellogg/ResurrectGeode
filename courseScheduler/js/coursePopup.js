@@ -69,17 +69,14 @@ export async function displayCourseContent(course) {
     if (course['mutual-exclusions']) addInfo('Mutual Exclusions', course['mutual exclusions']);
     addInfo('Course Description', course['coursedescription'] || "No course description");
 
-    // Add enrollment
-    let enrollmentInfo = await getAllEnrollment([course]);
-
-    if (enrollmentInfo) {
-        // In the success case
+    // Add enrollment asynchronously
+    getAllEnrollment([course]).then((value) => {
         addInfo('Section availabilities', '');
-        let enrollmentInfoTable = createEnrollmentTable(enrollmentInfo);
+        let enrollmentInfoTable = createEnrollmentTable(value);
         infoArea.appendChild(enrollmentInfoTable);
-    } else {
-        console.log('Unable to get enrollment information');
-    }
+    }, (reason) => {
+        console.log("unable to get enrollment information");
+    });
     
     document.body.appendChild(floatBox);
 

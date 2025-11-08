@@ -184,11 +184,13 @@ class genSchedule {
     }
     
     // Generates a schedule from courses considering all sections
-    async generate(selectedCourses, CRNMask) {
-        this.curr_enrollment = await getAllEnrollment(selectedCourses); // Get availability for all sections for all courses
+    async generate(selectedCourses, CRNMask, getAvailability) {
+        // Get availability for all sections for all courses.
+        if (getAvailability) await this.updateCurrentEnrollment(selectedCourses);
 
         // The enrollment object is the input
         function isAvailable(someEnrollmentInfo) {
+            if (!someEnrollmentInfo) return true; // If we never bothered to get the information don't worry about it.
             if(parseInt(someEnrollmentInfo["Available Seats"]) > 0 ||
                 parseInt(someEnrollmentInfo["Available Waitlist Spots"]) > 0) {
                     return true;
@@ -474,6 +476,11 @@ class genSchedule {
 
     getCurrentEnrollment() {
         return this.curr_enrollment;
+    }
+
+    // Accepts the rich course object (old format)
+    async updateCurrentEnrollment(courses) {
+        this.curr_enrollment = await getAllEnrollment(courses);
     }
 }
 
