@@ -46,10 +46,6 @@ https://reg-prod.mines.elluciancloud.com:8118/StudentRegistrationSsb/ssb/plan/se
 ```
 Next, generate your schedule and click 'export schedule to trailhead.' If your courses aren't loaded in (type Ctrl + Alt + C to view it), that's a bug. Please post an issue to the github page or email me (kellogg@mines.edu).
 
-### Help
-
-If you want to help me polish this project, specifically with the front end to make it look pretty, let me know. 
-
 
 ### Personal TODO
 1. Secondary click to isolate one section instead of deselecting every section
