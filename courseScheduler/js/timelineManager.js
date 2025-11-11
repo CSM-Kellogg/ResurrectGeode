@@ -15,6 +15,7 @@ class TimelineManager {
         this.courses = [];
         this.minDate = null;
         this.maxDate = null;
+        this.current_date;
         this.totalDurationDays = 0;
         TimelineManager.instance = this;
     }
@@ -29,6 +30,10 @@ class TimelineManager {
         const [month, day, year] = dateString.split('/').map(Number);
         // Date(year, monthIndex, day)
         return new Date(year, month - 1, day);
+    }
+
+    _getDateString(someDate) {
+        return `${String(someDate.getMonth()).padStart(2, '0')}/${String(someDate.getMonth()).padStart(2, '0')}/${someDate.getFullYear()}`;
     }
 
     /**
@@ -84,6 +89,8 @@ class TimelineManager {
             course.endDate > max ? course.endDate : max, 
             this.courses[0].endDate
         );
+
+        this.current_date = this.minDate;
         
         // Calculate the total duration in days (add 1 to be inclusive)
         this.totalDurationDays = this._dateDiffInDays(this.minDate, this.maxDate) + 1;
@@ -99,13 +106,11 @@ class TimelineManager {
             return;
         }
 
-        const rowHeight = 25; // Height for each course bar
+        document.querySelector('#current-date').innerHTML = `Current date: ${this._getDateString(this.current_date)}`;
 
-        // Clear existing content and prepare the outer timeline container
-        container.querySelector('#timeline-labels').innerHTML = '';
+        const rowHeight = 25; // Height for each course bar
         
         const timelineChart = document.getElementById('timeline-chart');
-        const labelsContainer = document.getElementById('timeline-labels');
 
         if (this.totalDurationDays <= 0) return;
 
@@ -149,7 +154,6 @@ class TimelineManager {
             const label = document.createElement('span');
             label.className = `badge rounded-pill me-2 mb-2 ${course.colorClass}`;
             label.textContent = course.name;
-            labelsContainer.appendChild(label);
         });
     }
 }
