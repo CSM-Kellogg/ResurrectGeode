@@ -122,7 +122,7 @@ class Catalog {
         });
 
         // Add the section listing
-        let sectionList = this.#catalogByName[formattedCourse['class name']].sections;
+        let sectionList = this.#catalogByName[`${formattedCourse['class name']}`].sections;
 
         let sections = sectionList.map((crn) => {
             let section = this.#catalogData[crn];
